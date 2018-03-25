@@ -1,0 +1,12 @@
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    group = 'com.github.mitallast'
+    version = '1.0'
+
+    ext.kotlin_version = '1.2.31'
+}

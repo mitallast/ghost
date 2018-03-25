@@ -1,0 +1,6 @@
+target/
+.idea
+*.iml
+data/*
+doc/images
+gradle/wrapper
