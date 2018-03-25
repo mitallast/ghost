@@ -1,19 +1,24 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven { url "https://kotlin.bintray.com/kotlinx" }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
     }
 }
 
 apply plugin: 'kotlin-platform-common'
+apply plugin: 'kotlinx-serialization'
 
 repositories {
     mavenCentral()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 dependencies {
+    def without = { exclude group: 'org.jetbrains.kotlin' }
     compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version", without
 }

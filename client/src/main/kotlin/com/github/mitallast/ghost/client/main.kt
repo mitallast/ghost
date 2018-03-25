@@ -1,15 +1,15 @@
 package com.github.mitallast.ghost.client
 
 import com.github.mitallast.ghost.HelloMessage
-import com.github.mitallast.ghost.codec.ByteDataInput
-import com.github.mitallast.ghost.codec.ByteDataOutput
+import kotlinx.io.ByteArrayInputStream
+import kotlinx.io.ByteArrayOutputStream
 
 fun main(args: Array<String>) {
     val write = HelloMessage(12123, "Hello world")
-    val out = ByteDataOutput()
+    val out = ByteArrayOutputStream()
     HelloMessage.codec.write(out, write)
     val array = out.toByteArray()
-    val input = ByteDataInput(array)
+    val input = ByteArrayInputStream(array)
     val read = HelloMessage.codec.read(input)
 
     println("write")
