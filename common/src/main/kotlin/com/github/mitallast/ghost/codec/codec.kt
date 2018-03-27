@@ -199,7 +199,7 @@ internal object CharCodec : Codec<Char> {
     override fun write(stream: OutputStream, value: Char) {
         val c = value.toInt()
         when {
-            c in 0x0001..0x007F -> {
+            c in 0x0000..0x007F -> {
                 stream.write(c)
             }
             c > 0x07FF -> {
