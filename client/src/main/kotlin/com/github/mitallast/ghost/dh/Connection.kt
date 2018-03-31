@@ -3,8 +3,6 @@ package com.github.mitallast.ghost.dh
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.message.TextMessage
-import kotlinx.io.ByteArrayInputStream
-import kotlinx.io.ByteArrayOutputStream
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
@@ -14,10 +12,10 @@ import org.w3c.dom.BinaryType
 import org.w3c.dom.WebSocket
 
 class Connection {
-    val url = "ws://localhost:8800/ws/"
-    val socket = WebSocket(url)
+    private val url = "ws://localhost:8800/ws/"
+    private val socket = WebSocket(url)
 
-    var echd: ECDHFlow? = null
+    private var echd: ECDHFlow? = null
 
     init {
         socket.binaryType = BinaryType.ARRAYBUFFER
@@ -26,17 +24,15 @@ class Connection {
                 console.log(e)
                 echd = ECDHFlow.start()
                 val request = echd!!.request()
-                val out = ByteArrayOutputStream()
-                Codec.anyCodec<ECDHRequest>().write(out, request)
+                val out = Codec.anyCodec<ECDHRequest>().write(request)
                 console.log("ecdh request")
-                socket.send(toArrayBuffer(out.toByteArray()))
+                socket.send(toArrayBuffer(out))
             }
         }
         socket.onmessage = { e ->
             console.log(e)
             val bytes = toByteArray(e.asDynamic()["data"])
-            val input = ByteArrayInputStream(bytes)
-            val msg = Codec.anyCodec<Message>().read(input)
+            val msg = Codec.anyCodec<Message>().read(bytes)
             when (msg) {
                 is ECDHResponse -> {
                     launch {
@@ -52,6 +48,8 @@ class Connection {
                         console.log("ecdh encrypted")
                         val decrypted = echd!!.decrypt(msg)
                         console.log("decrypted", decrypted)
+                        val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
+                        console.log("decoded", decoded)
                     }
                 }
                 else ->
@@ -68,14 +66,10 @@ class Connection {
 
     fun send(message: Message) {
         requireNotNull(echd)
-        var out = ByteArrayOutputStream()
-        Codec.anyCodec<Message>().write(out, message)
-        val coded = out.toByteArray()
+        val coded = Codec.anyCodec<Message>().write(message)
         launch {
             val encrypted = echd!!.encrypt(toArrayBuffer(coded))
-            out = ByteArrayOutputStream()
-            Codec.anyCodec<Message>().write(out, encrypted)
-            val data = out.toByteArray()
+            val data = Codec.anyCodec<Message>().write(encrypted)
             socket.send(toArrayBuffer(data))
         }
     }

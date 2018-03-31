@@ -6,5 +6,6 @@ class ECDHModule : AbstractModule() {
 
     override fun configure() {
         bind(ECDHService::class.java).asEagerSingleton()
+        bind(AuthStore::class.java).asEagerSingleton()
     }
 }

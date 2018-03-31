@@ -6,13 +6,8 @@ import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.DERSequence
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.encoders.Hex.toHexString
 import org.conscrypt.OpenSSLProvider
-import java.lang.Class
 import java.lang.IllegalArgumentException
-import java.lang.Math
-import java.lang.System
-import java.lang.Void
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.math.BigInteger
@@ -20,14 +15,12 @@ import java.security.*
 import java.security.spec.ECGenParameterSpec
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
-import java.util.concurrent.CompletableFuture
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import javax.xml.bind.DatatypeConverter.parseHexBinary
-import kotlin.RuntimeException
 
 private object ECDHParams {
     val PROVIDER = BouncyCastleProvider.PROVIDER_NAME
@@ -84,19 +77,69 @@ private object ECDHParams {
     }
 }
 
-class ECDHService @Inject constructor(config: Config) {
+class ECDHService @Inject constructor(
+    config: Config,
+    private val authStore: AuthStore
+) {
+    private val privateKeyBytes = parseHexBinary(config.getString("security.ecdsa.private"))
+    private val privateKey = ECDSA.importPrivateKey(privateKeyBytes)
 
-    private val ecdsa: KeyPair
+    fun ecdh(request: ECDHRequest): Pair<Auth, ECDHResponse> {
+        val serverECHD = ECDH.generate()
+        val clientECDHPublicKey = ECDH.importPublicKey(request.ecdhPublicKey)
+        val clientECDSAPublicKey = ECDSA.importPublicKey(request.ecdsaPublicKey)
+        val requestSignDER = ECDSA.raw2der(request.sign)
+        if (!ECDSA.verify(clientECDSAPublicKey, requestSignDER, request.ecdhPublicKey, request.ecdsaPublicKey)) {
+            throw IllegalArgumentException("not verified")
+        }
+        val secretKey = ECDH.deriveKey(serverECHD.private, clientECDHPublicKey)
+        val encoded = serverECHD.public.encoded
 
-    init {
-        val publicKeyBytes = parseHexBinary(config.getString("security.ecdsa.public"))
-        val privateKeyBytes = parseHexBinary(config.getString("security.ecdsa.private"))
-        val publicKey = ECDSA.importPublicKey(publicKeyBytes)
-        val privateKey = ECDSA.importPrivateKey(privateKeyBytes)
-        ecdsa = KeyPair(publicKey, privateKey)
+        val authId = authStore.generateAuthId()
+        authStore.storeAES(authId, secretKey)
+        authStore.storePublicECDSA(authId, clientECDSAPublicKey)
+        val auth = Auth(authId, clientECDSAPublicKey, secretKey)
+
+        val sign = ECDSA.sign(privateKey, authId, encoded)
+        val signRaw = ECDSA.der2raw(sign)
+        val response = ECDHResponse(authId, encoded, signRaw)
+
+        return Pair(auth, response)
     }
 
-    fun ecdh(): ECDHFlow = ECDHFlow(ecdsa)
+    fun reconnect(message: ECDHReconnect): Auth {
+        val aes = authStore.loadAES(message.auth)
+        val ecdsa = authStore.loadPublicECDSA(message.auth)
+
+        val signDER = ECDSA.raw2der(message.sign)
+        if (!ECDSA.verify(ecdsa, signDER, message.auth)) {
+            throw IllegalArgumentException("not verified")
+        }
+        return Auth(message.auth, ecdsa, aes)
+    }
+
+    fun encrypt(auth: Auth, data: ByteArray): ECDHEncrypted {
+        val aes = auth.secretKey
+
+        val iv = AES.iv()
+        val encrypted = AES.encrypt(aes, iv, data)
+        val sign = ECDSA.sign(privateKey, auth.auth, iv, data)
+        val signRaw = ECDSA.der2raw(sign)
+
+        return ECDHEncrypted(auth.auth, signRaw, iv, encrypted)
+    }
+
+    fun decrypt(auth: Auth, encrypted: ECDHEncrypted): ByteArray {
+        val aes = auth.secretKey
+        val ecdsa = auth.publicKey
+
+        val decrypted = AES.decrypt(aes, encrypted.iv, encrypted.encrypted)
+        val signDER = ECDSA.raw2der(encrypted.sign)
+        if (!ECDSA.verify(ecdsa, signDER, auth.auth, encrypted.iv, decrypted)) {
+            throw IllegalArgumentException("not verified")
+        }
+        return decrypted
+    }
 }
 
 object HASH {
@@ -131,6 +174,14 @@ object ECDSA {
         val publicKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
         val kf = KeyFactory.getInstance(ECDHParams.ECC_KEY_TYPE, ECDHParams.PROVIDER)
         return kf.generatePrivate(publicKeySpec)
+    }
+
+    fun exportPublicKey(publicKey: PublicKey): ByteArray {
+        return publicKey.encoded
+    }
+
+    fun exportPrivateKey(privateKey: PrivateKey): ByteArray {
+        return privateKey.encoded
     }
 
     fun sign(privateKey: PrivateKey, vararg data: ByteArray): ByteArray {
@@ -222,7 +273,7 @@ object ECDH {
         val secret = ka.generateSecret()
         // use SHA-256 as KDF function
         val hash = HASH.sha256(secret)
-        return SecretKeySpec(hash, "AES")
+        return AES.importKey(hash)
     }
 }
 
@@ -246,66 +297,12 @@ object AES {
         cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
         return cipher.doFinal(data)
     }
-}
 
-class ECDHFlow(private val serverECDSA: KeyPair) {
-    private enum class State {
-        START, AGREEMENT
+    fun importKey(data: ByteArray): SecretKey {
+        return SecretKeySpec(data, "AES")
     }
 
-    private val agreementFuture = CompletableFuture<Void>()
-    private val serverECHD: KeyPair = ECDH.generate()
-    @Volatile
-    private var state: State = State.START
-    @Volatile
-    private var clientECDHPublicKey: PublicKey? = null
-    @Volatile
-    private var clientECDSAPublicKey: PublicKey? = null
-    @Volatile
-    private var secretKey: SecretKey? = null
-
-    fun keyAgreement(request: ECDHRequest): ECDHResponse {
-        synchronized(this) {
-            require(state == State.START)
-            clientECDSAPublicKey = ECDSA.importPublicKey(request.ECDSAPublicKey)
-            clientECDHPublicKey = ECDH.importPublicKey(request.ECDHPublicKey)
-            val requestSignDER = ECDSA.raw2der(request.sign)
-
-            if (!ECDSA.verify(clientECDSAPublicKey!!, requestSignDER, request.ECDHPublicKey, request.ECDSAPublicKey)) {
-                throw IllegalArgumentException("not verified")
-            }
-            secretKey = ECDH.deriveKey(serverECHD.private, clientECDHPublicKey!!)
-
-            state = State.AGREEMENT
-            agreementFuture.complete(null)
-
-            val encoded = serverECHD.public.encoded
-
-            val der = ECDSA.sign(serverECDSA.private, encoded)
-            val raw = ECDSA.der2raw(der)
-
-            return ECDHResponse(
-                encoded,
-                raw
-            )
-        }
-    }
-
-    fun encrypt(data: ByteArray): ECDHEncrypted {
-        require(state == State.AGREEMENT)
-        val iv = AES.iv()
-        val encrypted = AES.encrypt(secretKey!!, iv, data)
-        val sign = ECDSA.sign(serverECDSA.private, data)
-        return ECDHEncrypted(sign, iv, encrypted)
-    }
-
-    fun decrypt(encrypted: ECDHEncrypted): ByteArray {
-        require(state == State.AGREEMENT)
-        val decrypted = AES.decrypt(secretKey!!, encrypted.iv, encrypted.encrypted)
-        val signDER = ECDSA.raw2der(encrypted.sign)
-        if (!ECDSA.verify(clientECDSAPublicKey!!, signDER, decrypted)) {
-            throw IllegalArgumentException("not verified")
-        }
-        return decrypted
+    fun exportKey(secretKey: SecretKey): ByteArray {
+        return secretKey.encoded
     }
 }

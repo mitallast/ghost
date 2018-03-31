@@ -1,5 +1,7 @@
 package com.github.mitallast.ghost.common.codec
 
+import kotlinx.io.ByteArrayInputStream
+import kotlinx.io.ByteArrayOutputStream
 import kotlinx.io.InputStream
 import kotlinx.io.OutputStream
 
@@ -10,7 +12,18 @@ interface Message {
 interface Codec<T> {
     fun read(stream: InputStream): T
 
+    fun read(data: ByteArray): T {
+        val input = ByteArrayInputStream(data)
+        return read(input)
+    }
+
     fun write(stream: OutputStream, value: T)
+
+    fun write(value: T): ByteArray {
+        val output = ByteArrayOutputStream()
+        write(output, value)
+        return output.toByteArray()
+    }
 
     companion object {
 
