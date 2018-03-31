@@ -5,6 +5,7 @@ import kotlin.js.Promise
 import kotlin.js.json
 
 sealed class Hash(val name: String)
+object HashSHA1 : Hash("SHA-1")
 object HashSHA256 : Hash("SHA-256")
 object HashSHA512 : Hash("SHA-512")
 

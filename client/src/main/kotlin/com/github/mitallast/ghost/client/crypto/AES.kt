@@ -2,8 +2,6 @@ package com.github.mitallast.ghost.client.crypto
 
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
-import kotlin.browser.window
-import kotlin.js.Json
 import kotlin.js.Promise
 import kotlin.js.json
 

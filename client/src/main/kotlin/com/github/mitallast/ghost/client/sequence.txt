@@ -1,0 +1,109 @@
+title Authentication Sequence
+
+Server->Server: generate ECDSA key pair
+Server->Server: store ECDSA key pair
+Alice->Alice: store ECDSA public key
+Bob->Bob: store ECDSA public key
+
+opt Connection to server
+    Alice->+Alice: generate ECDH key pair
+    Alice->Alice: generate ECDSA key pair
+    Alice-->+Server: send ECDHRequest
+
+note right of Server
+ECDHRequest {
+ + ECDH alice public key
+ + ECDSA alice public key
+ + signed by alice ECDSA private key
+}
+end note
+
+    Server->Server: validate request sign by ECDSA alicliecec public key
+    Server->Server: generate ECDH key pair
+    Server->Server: derive shared key
+    Server->-Alice: send ECDHResponse
+
+note right of Server
+ECDHResponse {
+ + ECDH server public key
+ + signed by server ECDSA private key
+}
+end note
+
+    Alice->Alice: validate response sign by ECDSA server public key
+    Alice->-Alice: derive shared key
+
+end opt
+
+opt Alice and Bob e2e
+    Alice->+Alice: generate ECDH key pair E2E
+    Alice->Alice: generate ECDSA key pair E2E
+    
+    Alice->+Server: send ECDHRequestE2E
+
+note right of Server
+ECDHRequestE2E {
+ + sender: UUID
+ + recipient: UUID
+ + ECDH alice public key
+ + ECDSA alice public key
+ + signed by ECDSA alice private key E2E
+ + signed by ECDSA alice private key
+ + encoded by AES256 shared key
+}
+end note
+
+    Server->Server: decode message
+    Server->Server: validate message ECDSA alice public key
+    Server->-Bob: resend ECDHRequestE2E
+
+note right of Server
+ECDHRequestE2E {
+ + sender: UUID
+ + recipient: UUID
+ + ECDH alice public key
+ + ECDSA alice public key
+ + signed by ECDSA alice private key E2E
+ + signed by ECDSA server private key
+ + encoded by AES256 shared key
+}
+end note
+
+    Bob->+Bob: decode message
+    Bob->Bob: validate message ECDSA server public key
+    Bob->Bob: validate message ECDSA alice public key E2E
+    Bob->Bob: generate ECDH key pair E2E
+    Bob->Bob: generate ECDSA key pair E2E
+    Bob->Bob: derive shared key
+    Bob->-Server: send ECHDResponseE2E
+
+note right of Server
+ECDHResponse {
+ + ECDH bob public key
+ + ECDSA bob public key
+ + signed by ECDSA bob private key E2E
+ + signed by ECDSA bob private key
+ + encoded by AES256 shared key
+}
+end note    
+
+    Server->+Server: decode message
+    Server->Server: validate message ECDSA bob public key
+    Server->-Alice: send ECDHResponseE2E
+
+note right of Server
+ECDHResponse {
+ + ECDH bob public key
+ + ECDSA bob public key
+ + signed by ECDSA bob private key E2E
+ + signed by ECDSA server private key
+ + encoded by AES256 shared key
+}
+end note
+
+    Alice->Alice: decode message
+    Alice->Alice: validate message ECDSA server public key
+    Alice->Alice: validate message ECDSA bob public key
+    Alice->-Alice: derive shared key
+
+end opt

@@ -43,6 +43,14 @@ object ECDSA {
         return crypto.subtle.exportKey("spki", key)
     }
 
+    fun exportPublicKeyJWK(key: ECDSAPublicKey): Promise<ArrayBuffer> {
+        return crypto.subtle.exportKey("jwk", key)
+    }
+
+    fun exportPublicKeyRaw(key: ECDSAPublicKey): Promise<ArrayBuffer> {
+        return crypto.subtle.exportKey("raw", key)
+    }
+
     fun exportPrivateKey(key: ECDSAPrivateKey): Promise<ArrayBuffer> {
         return crypto.subtle.exportKey("pkcs8", key)
     }

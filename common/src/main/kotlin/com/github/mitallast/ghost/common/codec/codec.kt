@@ -1,4 +1,4 @@
-package com.github.mitallast.ghost.codec
+package com.github.mitallast.ghost.common.codec
 
 import kotlinx.io.InputStream
 import kotlinx.io.OutputStream
@@ -122,7 +122,7 @@ internal object BooleanCodec : Codec<Boolean> {
     }
 
     override fun write(stream: OutputStream, value: Boolean) {
-        stream.write(if(value) 1 else 0)
+        stream.write(if (value) 1 else 0)
     }
 }
 
@@ -223,7 +223,7 @@ internal object StringCodec : Codec<String> {
             return ""
         }
         val builder = StringBuilder(size)
-        (0..(size-1)).forEach { builder.append(CharCodec.read(stream)) }
+        (0..(size - 1)).forEach { builder.append(CharCodec.read(stream)) }
         return builder.toString()
     }
 
@@ -279,9 +279,9 @@ internal class OptionCodec<T>(private val codec: Codec<T>) : Codec<T?> {
     }
 
     override fun write(stream: OutputStream, value: T?) {
-        if(value == null) {
+        if (value == null) {
             BooleanCodec.write(stream, false)
-        }else{
+        } else {
             BooleanCodec.write(stream, true)
             codec.write(stream, value)
         }
@@ -485,9 +485,9 @@ internal class AnyCodec<T : Message> : Codec<T> {
     override fun read(stream: InputStream): T {
         val id = IntCodec.read(stream)
         require(id >= 0)
-        val codec = idToCodecMap[id] as Codec<T>
-        requireNotNull(codec)
-        return codec.read(stream)
+        val codec = idToCodecMap[id] as Codec<T>?
+        requireNotNull(codec, { "class $id not registered" })
+        return codec!!.read(stream)
     }
 
     override fun write(stream: OutputStream, value: T) {
