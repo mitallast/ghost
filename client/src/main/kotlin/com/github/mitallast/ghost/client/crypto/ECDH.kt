@@ -77,11 +77,11 @@ object ECDH {
         )
     }
 
-    fun deriveBits(curve: Curve, publicKey: ECDHPublicKey, privateKey: ECDHPrivateKey, len: AESKeyLen): Promise<ArrayBuffer> {
+    fun deriveBits(curve: Curve, publicKey: ECDHPublicKey, privateKey: ECDHPrivateKey, len: Int): Promise<ArrayBuffer> {
         return crypto.subtle.deriveBits(
             algorithm = json(Pair("name", name), Pair("namedCurve", curve.name), Pair("public", publicKey)),
             baseKey = privateKey,
-            length = len.len
+            length = len
         )
     }
 }

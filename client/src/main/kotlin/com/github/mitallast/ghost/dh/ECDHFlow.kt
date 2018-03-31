@@ -70,7 +70,11 @@ class ECDHFlow(
         val verified = ECDSA.verify(HashSHA512, ecdsaServerPublicKey, sign, buffer).await()
         return if (verified) {
             val publicKey = ECDH.importPublicKey(CurveP521, buffer).await()
-            secretKey = ECDH.deriveKey(CurveP521, publicKey, ecdhKeyPair.privateKey, AESKeyLen256).await()
+            // 528 = 66 bytes
+            val secret = ECDH.deriveBits(CurveP521, publicKey, ecdhKeyPair.privateKey, 528).await()
+            // use SHA-256 as KDF function
+            val hash = SHA256.digest(secret).await()
+            secretKey = AES.importKey(hash).await()
             true
         } else {
             false

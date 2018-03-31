@@ -6,6 +6,7 @@ import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.DERSequence
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.util.encoders.Hex.toHexString
 import org.conscrypt.OpenSSLProvider
 import java.lang.Class
 import java.lang.IllegalArgumentException
@@ -96,6 +97,20 @@ class ECDHService @Inject constructor(config: Config) {
     }
 
     fun ecdh(): ECDHFlow = ECDHFlow(ecdsa)
+}
+
+object HASH {
+    fun sha256(vararg data: ByteArray): ByteArray {
+        val hash = MessageDigest.getInstance("SHA-256", ECDHParams.PROVIDER)
+        data.forEach { hash.update(it) }
+        return hash.digest()
+    }
+
+    fun sha512(vararg data: ByteArray): ByteArray {
+        val hash = MessageDigest.getInstance("SHA-512", ECDHParams.PROVIDER)
+        data.forEach { hash.update(it) }
+        return hash.digest()
+    }
 }
 
 object ECDSA {
@@ -203,8 +218,11 @@ object ECDH {
         val ka = KeyAgreement.getInstance(ECDHParams.ECDH_AGREEMENT, ECDHParams.PROVIDER)
         ka.init(privateKey)
         ka.doPhase(publicKey, true)
-        val secret = ka.generateSecret().copyOfRange(0, 32)
-        return SecretKeySpec(secret, "AES")
+        // 528 = 66 bytes
+        val secret = ka.generateSecret()
+        // use SHA-256 as KDF function
+        val hash = HASH.sha256(secret)
+        return SecretKeySpec(hash, "AES")
     }
 }
 
