@@ -78,6 +78,7 @@ class WebSocketFrameHandler @Inject constructor(
                         }
                     }
                     is ECDHEncrypted -> {
+                        logger.info("decrypt echd message")
                         val auth = ctx.channel().attr(authKey).get()
                         if (auth == null) {
                             throw IllegalStateException("channel is not authorized")
@@ -85,7 +86,9 @@ class WebSocketFrameHandler @Inject constructor(
                             throw IllegalStateException("channel auth is different")
                         } else {
                             val decrypted = ecdhService.decrypt(auth, message)
+                            logger.info("decrypted: {}", decrypted)
                             val decoded = Codec.anyCodec<Message>().read(decrypted)
+                            logger.info("decoded: {}", decoded)
                             sessionService.handle(auth, decoded)
                         }
                     }

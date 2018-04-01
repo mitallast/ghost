@@ -5,7 +5,8 @@ import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.*
-import com.github.mitallast.ghost.client.ecdh.*
+import com.github.mitallast.ghost.client.ecdh.ConnectionService
+import com.github.mitallast.ghost.client.ecdh.ECDHAuth
 import com.github.mitallast.ghost.e2ee.E2EEncrypted
 import com.github.mitallast.ghost.e2ee.E2ERequest
 import com.github.mitallast.ghost.e2ee.E2EResponse
@@ -24,13 +25,13 @@ object E2EDHFlow {
             launch {
                 val connection = ConnectionService.connection()
                 promises[HEX.toHex(to)] = Pair(resolve, reject)
-                val request = request(connection.auth(), to)
+                val request = request(connection.auth().auth, to)
                 ConnectionService.send(request)
             }
         })
     }
 
-    suspend fun request(auth: ECDHAuth, to: ByteArray): E2ERequest {
+    suspend fun request(from: ByteArray, to: ByteArray): E2ERequest {
         val ecdh = ECDH.generateKey(CurveP521).await()
         val ecdsa = ECDSA.generateKey(CurveP521).await()
 
@@ -40,11 +41,11 @@ object E2EDHFlow {
         val ecdhPublicKey = ECDH.exportPublicKey(ecdh.publicKey).await()
         val ecdsaPublicKey = ECDSA.exportPublicKey(ecdsa.publicKey).await()
 
-        val buffer = toArrayBuffer(auth.auth, to, ecdhPublicKey, ecdsaPublicKey)
+        val buffer = toArrayBuffer(from, to, ecdhPublicKey, ecdsaPublicKey)
         val sign = ECDSA.sign(HashSHA512, ecdsa.privateKey, buffer).await()
 
         return E2ERequest(
-            auth.auth,
+            from,
             to,
             toByteArray(ecdhPublicKey),
             toByteArray(ecdsaPublicKey),
@@ -90,7 +91,7 @@ object E2EDHFlow {
         console.log("e2e by request complete")
 
         val promise = promises[HEX.toHex(auth.auth)]
-        if(promise != null) {
+        if (promise != null) {
             promise.first.invoke(fromAuth)
         }
         val buffer2 = toArrayBuffer(auth.auth, request.from, ecdhPublicKey, ecdsaPublicKey)
@@ -141,13 +142,14 @@ object E2EDHFlow {
         return auth
     }
 
-    suspend fun encrypt(to: ByteArray, data: ArrayBuffer): ECDHEncrypted {
+    suspend fun encrypt(from: ByteArray, to: ByteArray, data: ArrayBuffer): E2EEncrypted {
         val auth = E2EAuthStore.loadAuth(to)
         val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
-        val buffer = toArrayBuffer(auth.auth, iv.buffer, data)
+        val buffer = toArrayBuffer(from, iv.buffer, data)
         val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
-        return ECDHEncrypted(
-            auth.auth,
+        return E2EEncrypted(
+            from,
+            to,
             toByteArray(sign),
             toByteArray(iv.buffer),
             toByteArray(encrypted)

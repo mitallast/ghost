@@ -101,7 +101,8 @@ object ConnectionService {
                             is E2EEncrypted -> {
                                 console.log("e2e encrypted received")
                                 val decrypted = E2EDHFlow.decrypt(decoded)
-                                console.log("e2e received", decrypted)
+                                val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
+                                console.log("e2e received", decoded)
                             }
                         }
                     }
@@ -150,8 +151,9 @@ object ConnectionService {
     suspend fun send(to: ByteArray, message: Message) {
         console.log("send e2e", HEX.toHex(to), message)
         val encoded = Codec.anyCodec<Message>().write(message)
-        val encrypted = E2EDHFlow.encrypt(to, toArrayBuffer(encoded))
-        send(encrypted)
+        val connection = connection()
+        val encrypted = E2EDHFlow.encrypt(connection.auth().auth, to, toArrayBuffer(encoded))
+        connection.send(encrypted)
     }
 }
 

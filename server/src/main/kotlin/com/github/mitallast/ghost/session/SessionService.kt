@@ -41,17 +41,19 @@ class SessionService @Inject constructor(
                 send(message.to, message)
             }
             is E2EResponse -> {
-                logger.info("e2e request: from={} to={}", Hex.toHexString(message.from), Hex.toHexString(message.to))
+                logger.info("e2e response: from={} to={}", Hex.toHexString(message.from), Hex.toHexString(message.to))
                 send(message.to, message)
             }
             is E2EEncrypted -> {
-                logger.info("e2e request: from={} to={}", Hex.toHexString(message.from), Hex.toHexString(message.to))
+                logger.info("e2e encrypted: from={} to={}", Hex.toHexString(message.from), Hex.toHexString(message.to))
                 send(message.to, message)
             }
             is TextMessage -> {
                 logger.info("text message: {}", message.text)
                 send(auth.auth, TextMessage("hello from service"))
             }
+            else ->
+                logger.warn("unexpected message: {}", message)
         }
     }
 

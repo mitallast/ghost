@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     Registry.register()
 
     launch {
-        val e2e = E2EDHFlow.connect(toByteArray(HEX.parseHex("9e175225b7ce4cde94730267456520b1").buffer)).await()
+        val e2e = E2EDHFlow.connect(toByteArray(HEX.parseHex("9fbf8c0aef424b64b8d7f9eb60a257dc").buffer)).await()
         ConnectionService.send(e2e.auth, TextMessage("Hello!"))
     }
 }
