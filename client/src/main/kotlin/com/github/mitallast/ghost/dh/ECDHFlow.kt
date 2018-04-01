@@ -31,8 +31,7 @@ class ECDHFlow(
         suspend fun start(): ECDHFlow {
             val ecdsa = ECDSA.generateKey(CurveP521).await()
             val ecdh = ECDH.generateKey(CurveP521).await()
-            val serverPublicKey = HEX.parseHex(ServerKeys.ECDSA.publicKey).buffer
-            val serverKey = ECDSA.importPublicKey(CurveP521, serverPublicKey).await()
+            val serverKey = serverPublicKey()
             return ECDHFlow(ecdsa, ecdh, serverKey)
         }
 
@@ -61,6 +60,18 @@ class ECDHFlow(
             }
             return view.buffer
         }
+
+        suspend fun reconnect(auth: Auth): ECDHReconnect {
+            val exported = ECDSA.exportPublicKey(auth.publicKey).await()
+            val buffer = toArrayBuffer(auth.auth, toByteArray(exported))
+            val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
+            return ECDHReconnect(auth.auth, toByteArray(sign))
+        }
+
+        suspend fun serverPublicKey(): ECDSAPublicKey {
+            val exported = HEX.parseHex(ServerKeys.ECDSA.publicKey).buffer
+            return ECDSA.importPublicKey(CurveP521, exported).await()
+        }
     }
 
     private var secretKey: AESKey? = null
@@ -78,13 +89,7 @@ class ECDHFlow(
         return ECDHRequest(toByteArray(ecdhPublicKey), toByteArray(ecdsaPublicKey), toByteArray(sign))
     }
 
-    suspend fun reconnect(): ECDHReconnect {
-        val buffer = toArrayBuffer(auth!!)
-        val sign = ECDSA.sign(HashSHA512, ecdsaKeyPair.privateKey, buffer).await()
-        return ECDHReconnect(auth!!, toByteArray(sign))
-    }
-
-    suspend fun response(response: ECDHResponse): Boolean {
+    suspend fun response(response: ECDHResponse): Auth {
         val serverKeyBuffer = toArrayBuffer(response.ecdhPublicKey)
         val sign = toArrayBuffer(response.sign)
         val buffer = toArrayBuffer(response.auth, response.ecdhPublicKey)
@@ -95,39 +100,10 @@ class ECDHFlow(
             val secret = ECDH.deriveBits(CurveP521, serverKey, ecdhKeyPair.privateKey, 528).await()
             // use SHA-256 as KDF function
             val hash = SHA256.digest(secret).await()
-            secretKey = AES.importKey(hash).await()
-            this.auth = response.auth
-            true
+            val secretKey = AES.importKey(hash).await()
+            Auth(response.auth, secretKey, ecdsaKeyPair.publicKey, ecdsaKeyPair.privateKey)
         } else {
-            false
+            throw Exception("not verified")
         }
-    }
-
-    suspend fun decrypt(encrypted: ECDHEncrypted): ArrayBuffer {
-        requireNotNull(secretKey)
-        val data = toArrayBuffer(encrypted.encrypted)
-        val iv = Uint8Array(toArrayBuffer(encrypted.iv))
-        val sign = toArrayBuffer(encrypted.sign)
-        val decrypted = AES.decrypt(secretKey!!, data, iv).await()
-        val buffer = toArrayBuffer(encrypted.auth, encrypted.iv, toByteArray(decrypted))
-        val verified = ECDSA.verify(HashSHA512, ecdsaServerPublicKey, sign, buffer).await()
-        if (verified) {
-            return decrypted
-        } else {
-            throw IllegalArgumentException("sign not verified")
-        }
-    }
-
-    suspend fun encrypt(data: ArrayBuffer): ECDHEncrypted {
-        requireNotNull(secretKey)
-        val (encrypted, iv) = AES.encrypt(secretKey!!, data).await()
-        val buffer = toArrayBuffer(auth!!, toByteArray(iv.buffer), toByteArray(data))
-        val sign = ECDSA.sign(HashSHA512, ecdsaKeyPair.privateKey, buffer).await()
-        return ECDHEncrypted(
-            auth!!,
-            toByteArray(sign),
-            toByteArray(iv.buffer),
-            toByteArray(encrypted)
-        )
     }
 }

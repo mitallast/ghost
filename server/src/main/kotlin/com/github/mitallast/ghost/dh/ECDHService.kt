@@ -112,7 +112,7 @@ class ECDHService @Inject constructor(
         val ecdsa = authStore.loadPublicECDSA(message.auth)
 
         val signDER = ECDSA.raw2der(message.sign)
-        if (!ECDSA.verify(ecdsa, signDER, message.auth)) {
+        if (!ECDSA.verify(ecdsa, signDER, message.auth, ecdsa.encoded)) {
             throw IllegalArgumentException("not verified")
         }
         return Auth(message.auth, ecdsa, aes)
