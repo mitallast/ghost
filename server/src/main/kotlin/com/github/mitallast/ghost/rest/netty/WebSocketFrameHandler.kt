@@ -69,7 +69,7 @@ class WebSocketFrameHandler @Inject constructor(
                         if (auth == null) {
                             val reconnected = ecdhService.reconnect(message)
                             ctx.channel().attr(authKey).set(reconnected)
-                            val session = WebSocketSessionContext(auth, ctx.channel())
+                            val session = WebSocketSessionContext(reconnected, ctx.channel())
                             sessionService.registered(session)
                         } else if (auth.auth.contentEquals(message.auth)) {
                             logger.warn("ignore reconnect message, same auth")
