@@ -11,6 +11,14 @@ object HEX {
         return toHex(Uint8Array(b))
     }
 
+    fun toHex(array: ByteArray): String {
+        var hex = "";
+        for (i in array) {
+            hex += byteToHex(i.toInt())
+        }
+        return hex
+    }
+
     fun toHex(array: Uint8Array): String {
         var hex = "";
         for (i in 0 until array.length) {

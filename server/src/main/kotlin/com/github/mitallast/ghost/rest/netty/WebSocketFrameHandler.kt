@@ -2,7 +2,7 @@ package com.github.mitallast.ghost.rest.netty
 
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.dh.*
+import com.github.mitallast.ghost.client.ecdh.*
 import com.github.mitallast.ghost.session.SessionContext
 import com.github.mitallast.ghost.session.SessionService
 import io.netty.buffer.Unpooled

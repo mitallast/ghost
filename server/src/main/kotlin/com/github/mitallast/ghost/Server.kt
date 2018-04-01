@@ -11,7 +11,7 @@ import com.github.mitallast.ghost.common.component.ModulesBuilder
 import com.github.mitallast.ghost.common.file.FileModule
 import com.github.mitallast.ghost.common.json.JsonModule
 import com.github.mitallast.ghost.common.netty.NettyModule
-import com.github.mitallast.ghost.dh.ECDHModule
+import com.github.mitallast.ghost.client.ecdh.ECDHModule
 import com.github.mitallast.ghost.rest.RestModule
 
 class Server(conf: Config, vararg plugins: AbstractModule) : AbstractLifecycleComponent() {
