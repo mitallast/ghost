@@ -8,6 +8,9 @@ import com.github.mitallast.ghost.rest.netty.WebSocketFrameHandler
 
 class RestModule : AbstractModule() {
     override fun configure() {
+        binder().disableCircularProxies()
+        binder().requireExplicitBindings()
+
         bind(HttpServer::class.java).asEagerSingleton()
         bind(HttpServerHandler::class.java).asEagerSingleton()
         bind(WebSocketFrameHandler::class.java).asEagerSingleton()

@@ -3,10 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <title>Console Output</title>
+    <style type="text/css">
+    html, body {
+        width: 100%;
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+    }
+
+    p {
+        margin: 0;
+        padding: 0;
+    }
+
+    *, *:before, *:after {
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+    #dialogsSection {
+        border: 1px solid gray;
+        width: 300px;
+    }
+    #dialogs {
+        border: 1px solid gray;
+        width: 300px;
+    }
+
+    #dialogs div a {
+        display: block;
+        padding: 5px;
+        overflow: hidden;
+    }
+
+    #messagesSection {
+        border: 1px solid gray;
+        width: 100%;
+
+        display: flex;
+        flex-direction: column;
+    }
+
+    #messages {
+        height: 100%;
+        width: 100%;
+    }
+
+    #messagesSend {
+        height: 3em;
+        width: 100%;
+        background: gray;
+        display: flex;
+        flex-direction: row;
+        border: none;
+    }
+
+    #sendText {
+        width: 100%;
+    }
+
+    #sendButton {
+
+    }
+
+    #container {
+        height: 100%;
+        width: 100%;
+
+        display: flex;
+        flex-direction: row;
+    }
+
+    #prompt {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    #prompt > div {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        padding: 20px;
+        background-color: #FFF;
+    }
+    </style>
 </head>
 <body>
+
+<div id="container">
+    <section id="dialogsSection">
+        <button type="button" id="addDialog">Add dialog</button>
+        <div id="dialogs"></div>
+    </section>
+
+    <section id="messagesSection">
+        <div id="messages" class=""></div>
+        <div id="messagesSend">
+            <textarea id="sendText"></textarea>
+            <button id="sendButton">Send</button>
+        </div>
+    </section>
+</div>
+
+<section id="prompt">
+    <div>
+        <p id="promptTitle">123</p>
+        <input id="promptInput" type="password">
+        <button id="promptButton">ok</button>
+    </div>
+</section>
+
 <script type="text/javascript" src="build/web/kotlin.js"></script>
 <script type="text/javascript" src="build/web/kotlinx-serialization-runtime-js.js"></script>
 <script type="text/javascript" src="build/web/client.js"></script>
+
 </body>
 </html>

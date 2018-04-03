@@ -16,7 +16,7 @@ fun launch(block: suspend () -> Unit) {
         override val context: CoroutineContext get() = EmptyCoroutineContext
         override fun resume(value: Unit) {}
         override fun resumeWithException(exception: Throwable) {
-            println("Coroutine failed: $exception")
+            console.error("coroutine failed", exception)
         }
     })
 }

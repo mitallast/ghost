@@ -4,3 +4,4 @@ target/
 data/*
 doc/images
 gradle/wrapper
+server/data

@@ -50,7 +50,7 @@ object E2EAuthStore {
         tx.await()
     }
 
-    suspend fun loadAuth(auth: ByteArray): E2EAuth {
+    suspend fun loadAuth(auth: ByteArray): E2EAuth? {
         val stores = arrayOf("secretKey", "publicKey", "privateKey")
         val tx = db.await().transaction(stores)
         val secretKeyB = tx.objectStore("secretKey").get<ArrayBuffer>(auth).await()
@@ -58,9 +58,9 @@ object E2EAuthStore {
         val privateKeyB = tx.objectStore("privateKey").get<ArrayBuffer>(auth).await()
         tx.await()
         return when {
-            secretKeyB == null -> throw RuntimeException("secret key not found")
-            publicKeyB == null -> throw RuntimeException("public key not found")
-            privateKeyB == null -> throw RuntimeException("private key not found")
+            secretKeyB == null -> null
+            publicKeyB == null -> null
+            privateKeyB == null -> null
             else -> {
                 val secretKey = AES.importKey(secretKeyB).await()
                 val publicKey = ECDSA.importPublicKey(CurveP521, publicKeyB).await()

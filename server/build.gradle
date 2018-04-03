@@ -5,12 +5,10 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gradle:osdetector-gradle-plugin:1.4.0'
     }
 }
 
 apply plugin: 'kotlin-platform-jvm'
-apply plugin: "com.google.osdetector"
 apply plugin: "application"
 
 mainClassName = 'com.github.mitallast.ghost.Main'
@@ -44,7 +42,6 @@ dependencies {
     compile 'io.netty:netty-all:4.1.22.Final'
     compile 'org.rocksdb:rocksdbjni:5.11.3'
 
-    compile 'org.conscrypt:conscrypt-openjdk:1.0.1:' + osdetector.classifier
     compile "org.bouncycastle:bcpkix-jdk15on:1.59"
     compile "org.bouncycastle:bcprov-jdk15on:1.59"
 

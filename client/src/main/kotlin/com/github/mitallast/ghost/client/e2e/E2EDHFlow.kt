@@ -1,36 +1,23 @@
 package com.github.mitallast.ghost.client.e2e
 
 import com.github.mitallast.ghost.client.common.await
-import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
+import com.github.mitallast.ghost.client.connection.ConnectionService
 import com.github.mitallast.ghost.client.crypto.*
-import com.github.mitallast.ghost.client.ecdh.ConnectionService
-import com.github.mitallast.ghost.client.ecdh.ECDHAuth
+import com.github.mitallast.ghost.client.dialogs.DialogsFlow
+import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
+import com.github.mitallast.ghost.client.messages.MessagesFlow
+import com.github.mitallast.ghost.client.prompt.PromptView
+import com.github.mitallast.ghost.common.codec.Codec
+import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.e2ee.E2EEncrypted
 import com.github.mitallast.ghost.e2ee.E2ERequest
 import com.github.mitallast.ghost.e2ee.E2EResponse
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
-import kotlin.js.Promise
-
-private typealias Resolver = (E2EAuth) -> Unit
-private typealias Reject = (Throwable) -> Unit
 
 object E2EDHFlow {
-    private val promises = HashMap<String, Pair<Resolver, Reject>>()
-
-    suspend fun connect(to: ByteArray): Promise<E2EAuth> {
-        return Promise({ resolve, reject ->
-            launch {
-                val connection = ConnectionService.connection()
-                promises[HEX.toHex(to)] = Pair(resolve, reject)
-                val request = request(connection.auth().auth, to)
-                ConnectionService.send(request)
-            }
-        })
-    }
-
     suspend fun request(from: ByteArray, to: ByteArray): E2ERequest {
         val ecdh = ECDH.generateKey(CurveP521).await()
         val ecdsa = ECDSA.generateKey(CurveP521).await()
@@ -53,7 +40,8 @@ object E2EDHFlow {
         )
     }
 
-    suspend fun response(auth: ECDHAuth, request: E2ERequest): E2EResponse {
+    suspend fun response(request: E2ERequest): E2EResponse {
+        val auth = ECDHAuthStore.loadAuth()!!
         val fromECDHPublicBuffer = toArrayBuffer(request.ecdhPublicKey)
         val fromECDSAPublicBuffer = toArrayBuffer(request.ecdsaPublicKey)
         val fromECDHPublicKey = ECDH.importPublicKey(CurveP521, fromECDHPublicBuffer).await()
@@ -65,7 +53,6 @@ object E2EDHFlow {
         if (!ECDSA.verify(HashSHA512, fromECDSAPublicKey, fromSign, buffer).await()) {
             console.error("e2e request sign not verified")
             val ex = IllegalArgumentException("e2e request: sign not verified")
-            promises[HEX.toHex(auth.auth)]?.second?.invoke(ex)
             throw ex
         }
 
@@ -75,9 +62,11 @@ object E2EDHFlow {
         val ecdhPublicKey = ECDH.exportPublicKey(ecdh.publicKey).await()
         val ecdsaPublicKey = ECDSA.exportPublicKey(ecdsa.publicKey).await()
         val secret = ECDH.deriveBits(CurveP521, fromECDHPublicKey, ecdh.privateKey, 528).await()
-        // use SHA-256 as KDF function
-        val hash = SHA256.digest(secret).await()
-        val secretKey = AES.importKey(hash).await()
+
+        // use PBKDF2 as KDF function
+        val pwd = PromptView.prompt("e2e: " + HEX.toHex(request.from)).await()
+        val pwdKey = PBKDF2.importKey(pwd).await()
+        val secretKey = PBKDF2.deriveKeyAES(Uint8Array(secret), 1024, HashSHA512, pwdKey, AESKeyLen256).await()
 
         val fromAuth = E2EAuth(
             request.from,
@@ -90,10 +79,6 @@ object E2EDHFlow {
 
         console.log("e2e by request complete")
 
-        val promise = promises[HEX.toHex(auth.auth)]
-        if (promise != null) {
-            promise.first.invoke(fromAuth)
-        }
         val buffer2 = toArrayBuffer(auth.auth, request.from, ecdhPublicKey, ecdsaPublicKey)
         val sign = ECDSA.sign(HashSHA512, ecdsa.privateKey, buffer2).await()
 
@@ -126,9 +111,11 @@ object E2EDHFlow {
 
         // 528 = 66 bytes
         val secret = ECDH.deriveBits(CurveP521, fromECDHPublicKey, ecdhPrivateKey, 528).await()
-        // use SHA-256 as KDF function
-        val hash = SHA256.digest(secret).await()
-        val secretKey = AES.importKey(hash).await()
+
+        // use PBKDF2 as KDF function
+        val pwd = PromptView.prompt("e2e: " + HEX.toHex(response.from)).await()
+        val pwdKey = PBKDF2.importKey(pwd).await()
+        val secretKey = PBKDF2.deriveKeyAES(Uint8Array(secret), 1024, HashSHA512, pwdKey, AESKeyLen256).await()
 
         val auth = E2EAuth(
             response.from,
@@ -143,7 +130,7 @@ object E2EDHFlow {
     }
 
     suspend fun encrypt(from: ByteArray, to: ByteArray, data: ArrayBuffer): E2EEncrypted {
-        val auth = E2EAuthStore.loadAuth(to)
+        val auth = E2EAuthStore.loadAuth(to)!!
         val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
         val buffer = toArrayBuffer(from, iv.buffer, data)
         val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
@@ -157,7 +144,7 @@ object E2EDHFlow {
     }
 
     suspend fun decrypt(encrypted: E2EEncrypted): ArrayBuffer {
-        val auth = E2EAuthStore.loadAuth(encrypted.from)
+        val auth = E2EAuthStore.loadAuth(encrypted.from)!!
         val data = toArrayBuffer(encrypted.encrypted)
         val iv = Uint8Array(toArrayBuffer(encrypted.iv))
         val sign = toArrayBuffer(encrypted.sign)
@@ -168,6 +155,51 @@ object E2EDHFlow {
             return decrypted
         } else {
             throw IllegalArgumentException("e2e decrypt: sign not verified")
+        }
+    }
+}
+
+object E2EFlow {
+    suspend fun connect(to: ByteArray) {
+        val auth = E2EAuthStore.loadAuth(to)
+        if (auth == null) {
+            console.log("no e2e auth found")
+            val connection = ConnectionService.connection()
+            val request = E2EDHFlow.request(connection.auth().auth, to)
+            ConnectionService.send(request)
+        } else {
+            console.log("e2e auth loaded")
+        }
+    }
+
+    suspend fun send(to: ByteArray, message: Message) {
+        console.log("send e2e", HEX.toHex(to), message)
+        val encoded = Codec.anyCodec<Message>().write(message)
+        val connection = ConnectionService.connection()
+        val encrypted = E2EDHFlow.encrypt(connection.auth().auth, to, toArrayBuffer(encoded))
+        connection.send(encrypted)
+    }
+
+    suspend fun handle(update: Message) {
+        when (update) {
+            is E2ERequest -> {
+                console.log("e2e request received")
+                val response = E2EDHFlow.response(update)
+                ConnectionService.send(response)
+                DialogsFlow.newContact(update.from)
+            }
+            is E2EResponse -> {
+                console.log("e2e response received")
+                E2EDHFlow.keyAgreement(update)
+                DialogsFlow.newContact(update.from)
+            }
+            is E2EEncrypted -> {
+                console.log("e2e encrypted received")
+                val decrypted = E2EDHFlow.decrypt(update)
+                val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
+                console.log("e2e received", decoded)
+                MessagesFlow.handle(update.from, decoded)
+            }
         }
     }
 }

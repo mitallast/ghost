@@ -1,20 +1,21 @@
-package com.github.mitallast.ghost.client.ecdh
+package com.github.mitallast.ghost.client.connection
 
 import com.github.mitallast.ghost.client.common.await
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
+import com.github.mitallast.ghost.client.ecdh.*
+import com.github.mitallast.ghost.client.updates.UpdatesFlow
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.client.e2e.E2EDHFlow
-import com.github.mitallast.ghost.e2ee.E2EEncrypted
-import com.github.mitallast.ghost.e2ee.E2ERequest
-import com.github.mitallast.ghost.e2ee.E2EResponse
 import com.github.mitallast.ghost.message.TextMessage
+import com.github.mitallast.ghost.updates.InstallUpdate
+import com.github.mitallast.ghost.updates.Update
 import org.w3c.dom.ARRAYBUFFER
 import org.w3c.dom.BinaryType
 import org.w3c.dom.WebSocket
+import kotlin.browser.window
 import kotlin.js.Promise
 
 object ConnectionService {
@@ -46,7 +47,7 @@ object ConnectionService {
             }
         }
         socket.binaryType = BinaryType.ARRAYBUFFER
-        socket.onopen = { e ->
+        socket.onopen = {
             launch {
                 console.log("connection opened")
                 auth = ECDHAuthStore.loadAuth()
@@ -87,24 +88,7 @@ object ConnectionService {
                         console.log("decrypted", decrypted)
                         val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
                         console.log("decoded", decoded)
-                        when (decoded) {
-                            is E2ERequest -> {
-                                console.log("e2e request received")
-                                val response = E2EDHFlow.response(auth!!, decoded)
-                                send(response)
-                            }
-                            is E2EResponse -> {
-                                console.log("e2e response received")
-                                val e2eAuth = E2EDHFlow.keyAgreement(decoded)
-                                send(e2eAuth.auth, TextMessage("hello world"))
-                            }
-                            is E2EEncrypted -> {
-                                console.log("e2e encrypted received")
-                                val decrypted = E2EDHFlow.decrypt(decoded)
-                                val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
-                                console.log("e2e received", decoded)
-                            }
-                        }
+                        handle(decoded)
                     }
                 }
                 else ->
@@ -113,34 +97,39 @@ object ConnectionService {
         }
         socket.onerror = {
             console.log("connection error", it)
-            console.log(it)
-            connection.close()
-            reconnect()
-            resolve.invoke(connection)
         }
         socket.onclose = {
-            console.log("closed", it)
-            connection.close()
-            reconnect()
-            resolve.invoke(connection)
+            console.log("connection closed", it)
+            if (connection.isConnected()) {
+                connection.close()
+                reconnect()
+                resolve.invoke(connection)
+            }
         }
     })
-
-    private fun reconnect() {
-        console.log("reconnect")
-        connectPromise = connect()
-    }
 
     private var connectPromise: Promise<Connection> = connect()
     private var connection: Connection? = null
 
+    private fun reconnect() {
+        console.log("reconnect")
+        connection = null
+        connectPromise = Promise({ resolve, reject ->
+            window.setTimeout({
+
+                connect().then(resolve, reject)
+            }, 5000)
+        })
+    }
+
     suspend fun connection(): Connection {
-        while (connection == null || !connection!!.isConnected()) {
+        var connection: Connection? = connection
+        while (connection == null || !connection.isConnected()) {
             console.log("await connection...")
             connection = connectPromise.await()
             console.log("connected!")
         }
-        return connection!!
+        return connection
     }
 
     suspend fun send(message: Message) {
@@ -148,12 +137,17 @@ object ConnectionService {
         connection().send(message)
     }
 
-    suspend fun send(to: ByteArray, message: Message) {
-        console.log("send e2e", HEX.toHex(to), message)
-        val encoded = Codec.anyCodec<Message>().write(message)
-        val connection = connection()
-        val encrypted = E2EDHFlow.encrypt(connection.auth().auth, to, toArrayBuffer(encoded))
-        connection.send(encrypted)
+    private suspend fun handle(message: Message) {
+        when (message) {
+            is Update -> {
+                UpdatesFlow.handle(message)
+            }
+            is InstallUpdate -> {
+                UpdatesFlow.handle(message)
+            }
+            else ->
+                console.warn("unexpected", message)
+        }
     }
 }
 

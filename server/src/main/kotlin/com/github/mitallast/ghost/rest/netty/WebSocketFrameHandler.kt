@@ -1,118 +1,158 @@
 package com.github.mitallast.ghost.rest.netty
 
+import com.github.mitallast.ghost.client.ecdh.ECDHEncrypted
+import com.github.mitallast.ghost.client.ecdh.ECDHReconnect
+import com.github.mitallast.ghost.client.ecdh.ECDHRequest
+import com.github.mitallast.ghost.common.actor.Actor
+import com.github.mitallast.ghost.common.actor.ActorRef
+import com.github.mitallast.ghost.common.actor.ActorSystem
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.client.ecdh.*
-import com.github.mitallast.ghost.session.SessionContext
-import com.github.mitallast.ghost.session.SessionService
+import com.github.mitallast.ghost.e2ee.E2EEncrypted
+import com.github.mitallast.ghost.e2ee.E2ERequest
+import com.github.mitallast.ghost.e2ee.E2EResponse
+import com.github.mitallast.ghost.ecdh.Auth
+import com.github.mitallast.ghost.ecdh.ECDHService
+import com.github.mitallast.ghost.session.SessionInactive
+import com.github.mitallast.ghost.session.SessionRegistered
+import com.github.mitallast.ghost.updates.*
+import com.google.inject.name.Named
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandler
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame
-import io.netty.handler.codec.http.websocketx.WebSocketFrame
 import io.netty.util.AttributeKey
 import org.apache.logging.log4j.LogManager
+import org.bouncycastle.util.encoders.Hex
 import javax.inject.Inject
+
+class SendMessage(val message: Message)
+object ChannelInactive
+object CloseChannel
 
 @ChannelHandler.Sharable
 class WebSocketFrameHandler @Inject constructor(
+    private val system: ActorSystem,
     private val ecdhService: ECDHService,
-    private val sessionService: SessionService
-) : SimpleChannelInboundHandler<WebSocketFrame>() {
+    @Named("session") private val session: ActorRef,
+    @Named("updates") private val updates: ActorRef
+) : SimpleChannelInboundHandler<BinaryWebSocketFrame>() {
 
     private val logger = LogManager.getLogger()
-    private val authKey = AttributeKey.valueOf<Auth>("auth.key")
+    private val actorKey = AttributeKey.valueOf<ActorRef>("actor")
 
     @Throws(Exception::class)
     override fun channelRegistered(ctx: ChannelHandlerContext) {
         logger.info("channel registered: {}", ctx.channel())
+        val ref = WebSocketActor(ctx.channel()).get()
+        ctx.channel().attr(actorKey).set(ref)
         super.channelActive(ctx)
     }
 
     @Throws(Exception::class)
     override fun channelInactive(ctx: ChannelHandlerContext) {
         logger.info("channel inactive: {}", ctx.channel())
-        val auth = ctx.channel().attr(authKey).getAndSet(null)
-        if (auth != null) {
-            sessionService.inactive(auth)
-        }
+        val ref = ctx.channel().attr(actorKey).getAndSet(null)
+        ref.send(ChannelInactive)
         super.channelInactive(ctx)
     }
 
     @Throws(Exception::class)
-    override fun channelRead0(ctx: ChannelHandlerContext, frame: WebSocketFrame) {
-        when (frame) {
-            is TextWebSocketFrame -> {
-                val json = frame.text()
-                logger.info("received {} {}", ctx.channel(), json)
-            }
-            is BinaryWebSocketFrame -> {
-                val size = frame.content().readableBytes()
-                val input = ByteArray(size)
-                frame.content().readBytes(input)
-                val message = Codec.anyCodec<Message>().read(input)
-                logger.info("received {} {}", ctx.channel(), message)
-                when (message) {
-                    is ECDHRequest -> {
-                        val (auth, response) = ecdhService.ecdh(message)
-                        val out = Codec.anyCodec<ECDHResponse>().write(response)
-                        ctx.channel().attr(authKey).set(auth)
-                        ctx.writeAndFlush(BinaryWebSocketFrame(Unpooled.wrappedBuffer(out)), ctx.voidPromise())
-                        val session = WebSocketSessionContext(auth, ctx.channel())
-                        sessionService.registered(session)
-                    }
-                    is ECDHReconnect -> {
-                        val auth = ctx.channel().attr(authKey).get()
-                        if (auth == null) {
-                            val reconnected = ecdhService.reconnect(message)
-                            ctx.channel().attr(authKey).set(reconnected)
-                            val session = WebSocketSessionContext(reconnected, ctx.channel())
-                            sessionService.registered(session)
-                        } else if (auth.auth.contentEquals(message.auth)) {
-                            logger.warn("ignore reconnect message, same auth")
-                        } else {
-                            throw IllegalStateException("channel auth is different")
-                        }
-                    }
-                    is ECDHEncrypted -> {
-                        logger.info("decrypt echd message")
-                        val auth = ctx.channel().attr(authKey).get()
-                        if (auth == null) {
-                            throw IllegalStateException("channel is not authorized")
-                        } else if (!auth.auth.contentEquals(message.auth)) {
-                            throw IllegalStateException("channel auth is different")
-                        } else {
-                            val decrypted = ecdhService.decrypt(auth, message)
-                            logger.info("decrypted: {}", decrypted)
-                            val decoded = Codec.anyCodec<Message>().read(decrypted)
-                            logger.info("decoded: {}", decoded)
-                            sessionService.handle(auth, decoded)
-                        }
-                    }
-                    else ->
-                        logger.warn("unexpected message: {}", message)
-                }
-            }
-            else ->
-                throw UnsupportedOperationException("unsupported frame type: " + frame.javaClass.simpleName)
-        }
+    override fun channelRead0(ctx: ChannelHandlerContext, frame: BinaryWebSocketFrame) {
+        val size = frame.content().readableBytes()
+        val input = ByteArray(size)
+        frame.content().readBytes(input)
+        val message = Codec.anyCodec<Message>().read(input)
+        logger.info("received {} {}", ctx.channel(), message)
+        ctx.channel().attr(actorKey).get().send(message)
     }
 
-    private inner class WebSocketSessionContext(
-        private val auth: Auth,
-        private val channel: Channel
-    ) : SessionContext {
-        override fun auth(): Auth = auth
+    private inner class WebSocketActor(private val channel: Channel) : Actor(system) {
+        private var auth: Auth? = null
 
-        override fun send(message: Message) {
-            val encoded = Codec.anyCodec<Message>().write(message)
-            val encrypted = ecdhService.encrypt(auth, encoded)
-            val data = Codec.anyCodec<Message>().write(encrypted)
-            val buf = Unpooled.wrappedBuffer(data)
-            val frame = BinaryWebSocketFrame(buf)
+        override fun handle(message: Any, sender: ActorRef) {
+            when (message) {
+                is ChannelInactive -> inactive()
+                is CloseChannel -> {
+                    auth = null
+                    channel.close()
+                }
+                is Auth -> {
+                    logger.info("authorized {}", Hex.toHexString(message.auth))
+                    this.auth = message
+                    session.send(SessionRegistered(message.auth), self)
+                    updates.send(ForceUpdate(message.auth))
+                }
+                is ECDHRequest -> {
+                    inactive()
+                    try {
+                        logger.info("ecdh request")
+                        val (auth, response) = ecdhService.ecdh(message)
+                        self.send(auth)
+                        send(response)
+                    } catch (e: Exception) {
+                        logger.error(e)
+                    }
+                }
+                is ECDHReconnect -> {
+                    inactive()
+                    try {
+                        logger.info("ecdh reconnect")
+                        val auth = ecdhService.reconnect(message)
+                        self.send(auth)
+                    } catch (e: Exception) {
+                        logger.error(e)
+                    }
+                }
+                is ECDHEncrypted -> {
+                    if (auth != null) {
+                        try {
+                            logger.info("ecdh encrypted")
+                            val decrypted = ecdhService.decrypt(auth!!, message)
+                            val decoded = Codec.anyCodec<Message>().read(decrypted)
+                            when (decoded) {
+                                is E2ERequest -> updates.send(SendUpdate(decoded.to, decoded))
+                                is E2EResponse -> updates.send(SendUpdate(decoded.to, decoded))
+                                is E2EEncrypted -> updates.send(SendUpdate(decoded.to, decoded))
+                                is UpdateInstalled -> updates.send(AuthUpdateInstalled(auth!!.auth, decoded.last))
+                                is UpdateRejected -> updates.send(AuthUpdateRejected(auth!!.auth, decoded.last))
+                            }
+                        } catch (e: Exception) {
+                            logger.error(e)
+                        }
+                    } else {
+                        logger.error("not authorized, but received encrypted message")
+                    }
+                }
+                is SendMessage -> {
+                    if (auth != null) {
+                        try {
+                            logger.info("send encrypted {}", message.message)
+                            val encoded = Codec.anyCodec<Message>().write(message.message)
+                            val encrypted = ecdhService.encrypt(auth!!, encoded)
+                            send(encrypted)
+                        } catch (e: Exception) {
+                            logger.error(e)
+                        }
+                    } else {
+                        logger.error("not authorized, received send message")
+                    }
+                }
+            }
+        }
+
+        private fun inactive() {
+            if (auth != null) {
+                session.send(SessionInactive(auth!!.auth))
+            }
+            auth = null
+        }
+
+        private fun send(message: Message) {
+            val out = Codec.anyCodec<Message>().write(message)
+            val frame = BinaryWebSocketFrame(Unpooled.wrappedBuffer(out))
             channel.writeAndFlush(frame, channel.voidPromise())
         }
     }

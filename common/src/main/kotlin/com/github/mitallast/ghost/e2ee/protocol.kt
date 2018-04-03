@@ -14,7 +14,7 @@ class E2ERequest(
     override fun messageId(): Int = messageId
 
     companion object {
-        const val messageId = 0x0300
+        const val messageId = 0x0200
         val codec = Codec.of(
             ::E2ERequest,
             E2ERequest::from,
@@ -42,7 +42,7 @@ class E2EResponse(
     override fun messageId(): Int = messageId
 
     companion object {
-        const val messageId = 0x0301
+        const val messageId = 0x0201
         val codec = Codec.of(
             ::E2EResponse,
             E2EResponse::from,
@@ -70,7 +70,7 @@ class E2EEncrypted(
     override fun messageId(): Int = messageId
 
     companion object {
-        const val messageId = 0x0302
+        const val messageId = 0x0202
         val codec = Codec.of(
             ::E2EEncrypted,
             E2EEncrypted::from,

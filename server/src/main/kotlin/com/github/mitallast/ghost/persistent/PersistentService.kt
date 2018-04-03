@@ -15,11 +15,13 @@ class PersistentService @Inject constructor(private val fileService: FileService
         .setCreateIfMissing(true)
         .setCreateMissingColumnFamilies(true)
 
-    private val writeOptions = WriteOptions()
+    private val writeOptions = WriteOptions().setSync(true)
     private val readOptions = ReadOptions()
     private val cfOptions = ColumnFamilyOptions().optimizeUniversalStyleCompaction()
 
-    private val cfDescriptors = mutableListOf<ColumnFamilyDescriptor>()
+    private val cfDescriptors = mutableListOf(
+        ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOptions)
+    )
     private val cfHandles = mutableListOf<ColumnFamilyHandle>()
 
     init {
