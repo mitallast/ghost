@@ -6,21 +6,20 @@ import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.message.TextMessage
 
 object MessagesFlow {
-    suspend fun handle(from: ByteArray, message: Message) {
+    fun handle(from: ByteArray, message: Message) {
         when (message) {
-            is TextMessage -> MessagesView.add(from, message)
+            is TextMessage -> MessagesView.addFrom(from, message)
         }
     }
 
-    suspend fun showHistory(auth: ByteArray) {
+    fun showHistory(auth: ByteArray) {
         console.log("show history", MessagesView)
         MessagesView.clear()
-        MessagesView.showHistory(auth)
     }
 
     suspend fun send(auth: ByteArray, message: TextMessage) {
         val self = ConnectionService.connection().auth()
         E2EFlow.send(auth, message)
-        MessagesView.add(self.auth, message)
+        MessagesView.addOwn(self.auth, message)
     }
 }

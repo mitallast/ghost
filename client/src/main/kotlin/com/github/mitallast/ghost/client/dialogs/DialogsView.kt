@@ -1,59 +1,70 @@
 package com.github.mitallast.ghost.client.dialogs
 
 import com.github.mitallast.ghost.client.common.launch
-import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
-import com.github.mitallast.ghost.client.e2e.E2EFlow
+import com.github.mitallast.ghost.client.html.div
+import com.github.mitallast.ghost.client.html.text
 import com.github.mitallast.ghost.client.messages.MessagesFlow
-import org.w3c.dom.get
-import kotlin.browser.window
 
 object DialogsView {
-    val dialogsContainer = window.document.getElementById("dialogs")!!
-    val addDialogButton = window.document.getElementById("addDialog")!!
+    val root = div {
+        attr("class", "sidebar-list-scroll")
+    }
 
     private val dialogs = ArrayList<DialogView>()
 
-    init {
-        addDialogButton.addEventListener("click", {
-            val hex = window.prompt("enter user id")
-            if (hex != null) {
-                launch {
-                    val id = toByteArray(HEX.parseHex(hex).buffer)
-                    E2EFlow.connect(id)
-                }
-            }
-        })
-    }
-
     fun clear() {
+        dialogs.forEach { it.remove() }
         dialogs.clear()
-        val nodes = dialogsContainer.childNodes
-        for (i in 0 until nodes.length) {
-            dialogsContainer.removeChild(nodes[i]!!)
-        }
     }
 
     fun addDialog(auth: ByteArray) {
-        val dialog = DialogView(auth)
-        dialogs.add(dialog)
-        DialogsView.dialogsContainer.appendChild(dialog.container)
+        val view = DialogView(auth)
+        dialogs.add(view)
+        root.append(view.root)
     }
 }
 
 class DialogView(val auth: ByteArray) {
-    val container = window.document.createElement("div")
-    val a = window.document.createElement("a")
-    val aText = window.document.createTextNode(HEX.toHex(auth))
+    private val name = HEX.toHex(auth)
 
-    init {
-        a.setAttribute("href", "#" + HEX.toHex(auth))
-        a.addEventListener("click", {
-            launch {
-                MessagesFlow.showHistory(auth)
+    private val nameText = text(name)
+    private val letterText = text(name.substring(0, 1))
+    private val messageText = text("new dialog")
+    private val dateText = text("00:00")
+
+    val root = div {
+        attr("class", "dialog-container")
+        div {
+            attr("class", "dialog")
+            div {
+                attr("class", "avatar-container")
+                div {
+                    attr("class", "avatar-placeholder")
+                    append(letterText)
+                }
             }
-        })
-        a.appendChild(aText)
-        container.appendChild(a)
+            div {
+                attr("class", "dialog-main")
+                div {
+                    attr("class", "dialog-header")
+                    span { append(dateText) }
+                    h4 { append(nameText) }
+                }
+                div {
+                    attr("class", "dialog-message")
+                    append(messageText)
+                }
+            }
+        }
+        onclick {
+            launch {
+                DialogsFlow.open(auth)
+            }
+        }
+    }
+
+    fun remove() {
+        root.remove()
     }
 }
