@@ -36,28 +36,28 @@ class UpdatesActor @Inject constructor(
             }
             is ForceUpdate -> {
                 logger.info("received force update auth={}", Hex.toHexString(message.auth))
-                val last = updatesStore.currentSequence(message.auth)
-                logger.info("currentSequence=$last auth={}", Hex.toHexString(message.auth))
-                maybeSendUpdates(message.auth, last)
+                val currentSequence = updatesStore.currentSequence(message.auth)
+                val lastInstalled = updatesStore.lastInstalled(message.auth)
+                maybeSendUpdates(message.auth, currentSequence, lastInstalled)
             }
             is AuthUpdateInstalled -> {
                 logger.info("received update installed auth={} i={}", Hex.toHexString(message.auth), message.last)
                 updatesStore.mark(message.auth, message.last)
-                maybeSendUpdates(message.auth, message.last)
+                val current = updatesStore.currentSequence(message.auth)
+                maybeSendUpdates(message.auth, message.last, current)
             }
             is AuthUpdateRejected -> {
                 logger.info("received update rejected auth={} i={}", Hex.toHexString(message.auth), message.last)
                 updatesStore.mark(message.auth, message.last)
-                maybeSendUpdates(message.auth, message.last)
+                val current = updatesStore.currentSequence(message.auth)
+                maybeSendUpdates(message.auth, message.last, current)
             }
         }
     }
 
-    private fun maybeSendUpdates(auth: ByteArray, currentSequence: Long) {
-        val installed = updatesStore.lastInstalled(auth)
-        logger.info("installed=$installed auth={}", Hex.toHexString(auth))
-        if (installed < currentSequence) {
-            val updates = updatesStore.loadFrom(auth, installed, 100)
+    private fun maybeSendUpdates(auth: ByteArray, lastInstalled: Long, currentSequence: Long) {
+        if (lastInstalled < currentSequence) {
+            val updates = updatesStore.loadFrom(auth, lastInstalled, 100)
             logger.info("send install update {}", updates.size)
             session.send(SessionSend(auth, InstallUpdate(updates)))
         }
