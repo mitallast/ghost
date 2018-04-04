@@ -57,7 +57,7 @@ class UpdatesStore @Inject constructor(private val db: PersistentService) {
         val updates = ArrayList<Update>(count)
         val buffer = Codec.longCodec().write(last)
         val iterator = db.iterator(logCF(auth))
-        iterator.seekToFirst()
+        iterator.seek(buffer)
         while (iterator.isValid && updates.size < count) {
             val currentBuffer = iterator.key()
             val current = Codec.longCodec().read(currentBuffer)

@@ -1,9 +1,5 @@
 package com.github.mitallast.ghost.ecdh
 
-import com.github.mitallast.ghost.client.ecdh.ECDHEncrypted
-import com.github.mitallast.ghost.client.ecdh.ECDHReconnect
-import com.github.mitallast.ghost.client.ecdh.ECDHRequest
-import com.github.mitallast.ghost.client.ecdh.ECDHResponse
 import com.github.mitallast.ghost.common.crypto.AES
 import com.github.mitallast.ghost.common.crypto.ECDH
 import com.github.mitallast.ghost.common.crypto.ECDSA

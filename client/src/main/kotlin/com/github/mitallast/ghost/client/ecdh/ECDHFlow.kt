@@ -4,6 +4,7 @@ import com.github.mitallast.ghost.client.common.await
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.*
+import com.github.mitallast.ghost.ecdh.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 

@@ -1,4 +1,4 @@
-package com.github.mitallast.ghost.e2ee
+package com.github.mitallast.ghost.e2e
 
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message

@@ -1,8 +1,8 @@
 package com.github.mitallast.ghost
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.client.ecdh.*
-import com.github.mitallast.ghost.e2ee.*
+import com.github.mitallast.ghost.ecdh.*
+import com.github.mitallast.ghost.e2e.*
 import com.github.mitallast.ghost.updates.*
 import com.github.mitallast.ghost.message.TextMessage
 

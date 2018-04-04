@@ -1,4 +1,4 @@
-package com.github.mitallast.ghost.client.ecdh
+package com.github.mitallast.ghost.ecdh
 
 import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.common.codec.Codec

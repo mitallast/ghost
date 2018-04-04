@@ -11,9 +11,9 @@ import com.github.mitallast.ghost.client.messages.MessagesFlow
 import com.github.mitallast.ghost.client.prompt.PromptView
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.e2ee.E2EEncrypted
-import com.github.mitallast.ghost.e2ee.E2ERequest
-import com.github.mitallast.ghost.e2ee.E2EResponse
+import com.github.mitallast.ghost.e2e.E2EEncrypted
+import com.github.mitallast.ghost.e2e.E2ERequest
+import com.github.mitallast.ghost.e2e.E2EResponse
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 

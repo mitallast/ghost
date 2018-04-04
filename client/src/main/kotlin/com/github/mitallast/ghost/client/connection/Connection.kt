@@ -5,6 +5,7 @@ import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
+import com.github.mitallast.ghost.ecdh.*
 import com.github.mitallast.ghost.client.ecdh.*
 import com.github.mitallast.ghost.client.updates.UpdatesFlow
 import com.github.mitallast.ghost.common.codec.Codec

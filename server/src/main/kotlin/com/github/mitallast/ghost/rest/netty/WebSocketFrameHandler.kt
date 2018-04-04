@@ -1,16 +1,16 @@
 package com.github.mitallast.ghost.rest.netty
 
-import com.github.mitallast.ghost.client.ecdh.ECDHEncrypted
-import com.github.mitallast.ghost.client.ecdh.ECDHReconnect
-import com.github.mitallast.ghost.client.ecdh.ECDHRequest
+import com.github.mitallast.ghost.ecdh.ECDHEncrypted
+import com.github.mitallast.ghost.ecdh.ECDHReconnect
+import com.github.mitallast.ghost.ecdh.ECDHRequest
 import com.github.mitallast.ghost.common.actor.Actor
 import com.github.mitallast.ghost.common.actor.ActorRef
 import com.github.mitallast.ghost.common.actor.ActorSystem
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.e2ee.E2EEncrypted
-import com.github.mitallast.ghost.e2ee.E2ERequest
-import com.github.mitallast.ghost.e2ee.E2EResponse
+import com.github.mitallast.ghost.e2e.E2EEncrypted
+import com.github.mitallast.ghost.e2e.E2ERequest
+import com.github.mitallast.ghost.e2e.E2EResponse
 import com.github.mitallast.ghost.ecdh.Auth
 import com.github.mitallast.ghost.ecdh.ECDHService
 import com.github.mitallast.ghost.session.SessionInactive
