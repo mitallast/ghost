@@ -5,3 +5,6 @@ data/*
 doc/images
 gradle/wrapper
 server/data
+server/build
+common/build
+client/build
