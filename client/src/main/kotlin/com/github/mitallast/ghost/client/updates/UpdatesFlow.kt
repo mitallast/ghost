@@ -1,7 +1,7 @@
 package com.github.mitallast.ghost.client.updates
 
-import com.github.mitallast.ghost.client.connection.ConnectionService
 import com.github.mitallast.ghost.client.e2e.E2EFlow
+import com.github.mitallast.ghost.client.ecdh.ECDHController
 import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2ERequest
@@ -20,7 +20,7 @@ object UpdatesFlow {
                     console.log("update received", message)
                     installUpdate(message.update)
                     UpdatesStore.updateLastInstalled(message.sequence)
-                    ConnectionService.send(UpdateInstalled(message.sequence))
+                    ECDHController.send(UpdateInstalled(message.sequence))
                 }
             }
             is InstallUpdate -> {
@@ -40,10 +40,10 @@ object UpdatesFlow {
                 UpdatesStore.updateLastInstalled(lastInstalled)
                 if (error) {
                     console.info("send update rejected", lastInstalled)
-                    ConnectionService.send(UpdateRejected(lastInstalled))
+                    ECDHController.send(UpdateRejected(lastInstalled))
                 } else {
                     console.info("send update installed", lastInstalled)
-                    ConnectionService.send(UpdateInstalled(lastInstalled))
+                    ECDHController.send(UpdateInstalled(lastInstalled))
                 }
             }
         }

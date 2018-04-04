@@ -1,10 +1,7 @@
 package com.github.mitallast.ghost.client.updates
 
 import com.github.mitallast.ghost.client.common.await
-import com.github.mitallast.ghost.client.persistent.IDBDatabase
-import com.github.mitallast.ghost.client.persistent.await
-import com.github.mitallast.ghost.client.persistent.indexedDB
-import com.github.mitallast.ghost.client.persistent.promise
+import com.github.mitallast.ghost.client.persistent.*
 import com.github.mitallast.ghost.common.codec.Codec
 import kotlin.js.Promise
 
@@ -20,6 +17,15 @@ internal object UpdatesStore {
             }
         }
         db = open.promise()
+    }
+
+    suspend fun cleanup() {
+        val d = db.await()
+        val tx = d.transaction(d.objectStoreNames, "readwrite")
+        for(store in d.objectStoreNames) {
+            tx.objectStore(store).delete(IDBKeyRange.lowerBound(0)).await()
+        }
+        tx.await()
     }
 
     suspend fun updateLastInstalled(sequence: Long) {

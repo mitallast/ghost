@@ -4,7 +4,6 @@ import org.w3c.dom.events.Event
 import org.w3c.dom.get
 import kotlin.browser.window
 
-
 abstract class Element(name: String, ns: String? = null) {
     protected val element = if (ns == null) {
         window.document.createElement(name)
@@ -15,6 +14,13 @@ abstract class Element(name: String, ns: String? = null) {
 
     fun attr(name: String, value: String) {
         element.setAttribute(name, value)
+    }
+
+    fun show() {
+        attr("style", "display: none;")
+    }
+    fun hide() {
+        attr("style", "display: none;")
     }
 
     fun div(init: DIV.() -> Unit): DIV = initTag(DIV(), init)
@@ -56,6 +62,10 @@ abstract class Element(name: String, ns: String? = null) {
         element.remove()
     }
 
+    fun remove(child: Element) {
+        element.removeChild(child.element)
+    }
+
     fun removeChildren() {
         val nodes = element.childNodes
         for (i in 0 until nodes.length) {
@@ -73,8 +83,12 @@ abstract class Element(name: String, ns: String? = null) {
 abstract class SVGElement(name: String) : Element(name, "http://www.w3.org/2000/svg") {
     fun g(init: G.() -> Unit): G = initTag(G(), init)
     fun rect(init: RECT.() -> Unit): RECT = initTag(RECT(), init)
+    fun path(init: PATH.() -> Unit): PATH = initTag(PATH(), init)
+    fun polygon(init: POLYGON.() -> Unit): POLYGON = initTag(POLYGON(), init)
 }
 
+class POLYGON() : SVGElement("polygon")
+class PATH() : SVGElement("path")
 class RECT() : SVGElement("rect")
 class G() : SVGElement("g")
 class SVG() : SVGElement("svg")
@@ -101,7 +115,12 @@ class TEXTAREA() : Element("textarea") {
 }
 class INPUT() : Element("input") {
     fun type(value: String) = attr("type", value)
+    fun name(value: String) = attr("name", value)
     fun autocomplete(value: String) = attr("autocomplete", value)
+
+    fun value(value: String) {
+        element.asDynamic().value = value
+    }
 
     fun value(): String {
         val text: String? = element.asDynamic().value

@@ -3,17 +3,19 @@ package com.github.mitallast.ghost.client.e2e
 import com.github.mitallast.ghost.client.common.await
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
-import com.github.mitallast.ghost.client.connection.ConnectionService
 import com.github.mitallast.ghost.client.crypto.*
-import com.github.mitallast.ghost.client.dialogs.DialogsFlow
 import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
-import com.github.mitallast.ghost.client.messages.MessagesFlow
+import com.github.mitallast.ghost.client.ecdh.ECDHController
+import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.prompt.PromptView
+import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.Message
 import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2ERequest
 import com.github.mitallast.ghost.e2e.E2EResponse
+import com.github.mitallast.ghost.message.TextMessage
+import com.github.mitallast.ghost.profile.UserProfile
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
@@ -75,9 +77,11 @@ object E2EDHFlow {
             ecdsa.privateKey
         )
 
+        console.log("store e2e auth", HEX.toHex(fromAuth.auth))
+
         E2EAuthStore.storeAuth(fromAuth)
 
-        console.log("e2e by request complete")
+        console.log("e2e by request complete", HEX.toHex(fromAuth.auth))
 
         val buffer2 = toArrayBuffer(auth.auth, request.from, ecdhPublicKey, ecdsaPublicKey)
         val sign = ECDSA.sign(HashSHA512, ecdsa.privateKey, buffer2).await()
@@ -130,9 +134,12 @@ object E2EDHFlow {
     }
 
     suspend fun encrypt(from: ByteArray, to: ByteArray, data: ArrayBuffer): E2EEncrypted {
+        console.log("load e2e auth", HEX.toHex(to))
         val auth = E2EAuthStore.loadAuth(to)!!
+        console.log("e2e aes encrypt")
         val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
         val buffer = toArrayBuffer(from, iv.buffer, data)
+        console.log("e2e ecdsa sign")
         val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
         return E2EEncrypted(
             from,
@@ -161,12 +168,15 @@ object E2EDHFlow {
 
 object E2EFlow {
     suspend fun connect(to: ByteArray) {
-        val auth = E2EAuthStore.loadAuth(to)
-        if (auth == null) {
+        console.log("search e2e auth")
+        val e2eAuth = E2EAuthStore.loadAuth(to)
+        if (e2eAuth == null) {
             console.log("no e2e auth found")
-            val connection = ConnectionService.connection()
-            val request = E2EDHFlow.request(connection.auth().auth, to)
-            ConnectionService.send(request)
+            val auth = ECDHController.auth()
+            console.log("prepare e2e request")
+            val request = E2EDHFlow.request(auth, to)
+            console.log("send e2e request")
+            ECDHController.send(request)
         } else {
             console.log("e2e auth loaded")
         }
@@ -175,9 +185,12 @@ object E2EFlow {
     suspend fun send(to: ByteArray, message: Message) {
         console.log("send e2e", HEX.toHex(to), message)
         val encoded = Codec.anyCodec<Message>().write(message)
-        val connection = ConnectionService.connection()
-        val encrypted = E2EDHFlow.encrypt(connection.auth().auth, to, toArrayBuffer(encoded))
-        connection.send(encrypted)
+        console.log("get auth for e2e encryption")
+        val auth = ECDHController.auth()
+        console.log("encrypt e2e")
+        val encrypted = E2EDHFlow.encrypt(auth, to, toArrayBuffer(encoded))
+        console.log("send e2e encrypted", encrypted)
+        ECDHController.send(encrypted)
     }
 
     suspend fun handle(update: Message) {
@@ -185,20 +198,23 @@ object E2EFlow {
             is E2ERequest -> {
                 console.log("e2e request received")
                 val response = E2EDHFlow.response(update)
-                ConnectionService.send(response)
-                DialogsFlow.newContact(update.from)
+                ECDHController.send(response)
+                ProfileController.newContact(update.from)
             }
             is E2EResponse -> {
                 console.log("e2e response received")
                 E2EDHFlow.keyAgreement(update)
-                DialogsFlow.newContact(update.from)
+                ProfileController.newContact(update.from)
             }
             is E2EEncrypted -> {
                 console.log("e2e encrypted received")
                 val decrypted = E2EDHFlow.decrypt(update)
                 val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
                 console.log("e2e received", decoded)
-                MessagesFlow.handle(update.from, decoded)
+                when (decoded) {
+                    is UserProfile -> ProfileController.updateProfile(decoded)
+                    is TextMessage -> MessagesController.handle(update.from, decoded)
+                }
             }
         }
     }

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="index.css">
+    <title>Ghost messenger</title>
+</head>
+<body>
+<div class="ghost">
+    <div class="ghost-container">
+        <div class="ghost-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-header-content">
+                    <a class="sidebar-menu-button" title="add dialog">
+                        <svg viewBox="0 0 16 14">
+                            <g fill="#000" fill-rule="evenodd">
+                                <rect width="16" height="2" rx="1"></rect>
+                                <rect width="16" height="2" y="6" rx="1"></rect>
+                                <rect width="16" height="2" y="12" rx="1"></rect>
+                            </g>
+                        </svg>
+                    </a>
+                    <h2 class="sidebar-header-logo">Ghost messenger</h2>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="sidebar-menu-scroll">
+                    <div class="main-info-container">
+                        <div class="main-info">
+                            <a class="main-info-edit">
+                                <svg viewBox="0 0 18 18">
+                                    <path fill="#2A86F3"
+                                          d="M9,23.2505208 L9,27 L12.7494792,27 L23.8079433,15.9415359 L20.0584641,12.1920567 L9,23.2505208 Z M26.7075406,13.0419386 C27.0974865,12.6519928 27.0974865,12.0220803 26.7075406,11.6321344 L24.3678656,9.29245938 C23.9779197,8.90251354 23.3480072,8.90251354 22.9580614,9.29245938 L21.1283155,11.1222052 L24.8777948,14.8716845 L26.7075406,13.0419386 Z"
+                                          transform="translate(-9 -9)">
+                                    </path>
+                                </svg>
+                            </a>
+                            <div class="main-info-avatar">
+                                <div class="main-info-avatar-placeholder">Л</div>
+                            </div>
+                            <h4>Hello</h4>
+                        </div>
+                        <div class="main-info" style="display: none;">
+                            <a class="main-info-save">Save</a>
+                            <a class="main-info-avatar avatar-edit">
+                                <div class="main-info-avatar-placeholder">Л</div>
+                            </a>
+                            <div class="main-info-fullname-edit">
+                                <input type="file" accept=".png,.jpg,jpeg">
+                                <input type="text" value="Hello">
+                            </div>
+                        </div>
+                        <script>
+                    var edit = document.getElementsByClassName("main-info-edit")[0];
+                    edit.addEventListener("click", function(){
+                        edit.parentNode.style.display="none";
+                        save.parentNode.style.display="block";
+                    });
+                    var save = document.getElementsByClassName("main-info-save")[0];
+                    save.addEventListener("click", function(){
+                        save.parentNode.style.display="none";
+                        edit.parentNode.style.display="block";
+                    });
+                </script>
+                    </div>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item"><span class="sidebar-menu-text">Nickname</span><span class="sidebar-menu-hint">@toto</span><span class="sidebar-menu-icon"><svg viewBox="0 0 8 13"><polygon fill="#CCCCCC" fill-rule="evenodd" points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5" transform="translate(-337 -676)"></polygon></svg></span></a>
+                    <a class="sidebar-menu-item">
+                        <span class="sidebar-menu-text">Nickname</span>
+                        <span class="sidebar-menu-hint">@toto</span>
+                        <span class="sidebar-menu-icon">
+                            <svg viewBox="0 0 8 13">
+                                <polygon fill="#CCCCCC" fill-rule="evenodd"
+                                         points="337 677.5 338.5 676 345 682.5 338.5 689 337 687.5 342 682.5"
+                                         transform="translate(-337 -676)"></polygon>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="ghost-main">
+            <div class="content-container">
+                <div class="content-header">
+                    <h3>Edit nickname</h3>
+                </div>
+                <div class="content-main">
+                    <div class="form-container">
+                        <div class="form-input">
+                            <input type="text" value="@nickname">
+                        </div>
+                        <div class="form-hint">
+                            Friends will be able to find you by this nickname without using a phone number. Your nickname must contain a minimum of 5 Latin characters or digits.
+                        </div>
+                        <div class="form-button">
+                            <button type="submit">Save</button>
+                            <button type="button">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="prompt-container" style="display: none;">
+    <div class="prompt">
+        <form>
+        <div class="prompt-title">title</div>
+        <div class="prompt-action">
+            <input type="password" autocomplete="false">
+            <button type="submit">OK</button>
+            <button type="submit">Cancel</button>
+        </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -2,10 +2,7 @@ package com.github.mitallast.ghost.client.e2e
 
 import com.github.mitallast.ghost.client.crypto.*
 import com.github.mitallast.ghost.client.common.*
-import com.github.mitallast.ghost.client.persistent.IDBDatabase
-import com.github.mitallast.ghost.client.persistent.await
-import com.github.mitallast.ghost.client.persistent.indexedDB
-import com.github.mitallast.ghost.client.persistent.promise
+import com.github.mitallast.ghost.client.persistent.*
 import org.khronos.webgl.ArrayBuffer
 import kotlin.js.Promise
 
@@ -35,6 +32,15 @@ object E2EAuthStore {
             }
         }
         db = open.promise()
+    }
+
+    suspend fun cleanup() {
+        val d = db.await()
+        val tx = d.transaction(d.objectStoreNames, "readwrite")
+        for(store in d.objectStoreNames) {
+            tx.objectStore(store).delete(IDBKeyRange.bound(null, null)).await()
+        }
+        tx.await()
     }
 
     suspend fun storeAuth(auth: E2EAuth) {
