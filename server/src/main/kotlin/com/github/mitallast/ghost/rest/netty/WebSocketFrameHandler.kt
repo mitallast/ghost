@@ -7,7 +7,7 @@ import com.github.mitallast.ghost.common.actor.Actor
 import com.github.mitallast.ghost.common.actor.ActorRef
 import com.github.mitallast.ghost.common.actor.ActorSystem
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2ERequest
 import com.github.mitallast.ghost.e2e.E2EResponse
@@ -28,7 +28,7 @@ import org.apache.logging.log4j.LogManager
 import org.bouncycastle.util.encoders.Hex
 import javax.inject.Inject
 
-class SendMessage(val message: Message)
+class SendMessage(val message: CodecMessage)
 object ChannelInactive
 object CloseChannel
 
@@ -59,17 +59,23 @@ class WebSocketFrameHandler @Inject constructor(
         super.channelInactive(ctx)
     }
 
+    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        logger.error("unexpected exception", cause)
+        ctx.close()
+    }
+
     @Throws(Exception::class)
     override fun channelRead0(ctx: ChannelHandlerContext, frame: BinaryWebSocketFrame) {
         val size = frame.content().readableBytes()
         val input = ByteArray(size)
         frame.content().readBytes(input)
-        val message = Codec.anyCodec<Message>().read(input)
+        val message = Codec.anyCodec<CodecMessage>().read(input)
         logger.info("received {} {}", ctx.channel(), message)
         ctx.channel().attr(actorKey).get().send(message)
     }
 
     private inner class WebSocketActor(private val channel: Channel) : Actor(system) {
+        private val logger = LogManager.getLogger()
         private var auth: Auth? = null
 
         override fun handle(message: Any, sender: ActorRef) {
@@ -111,7 +117,7 @@ class WebSocketFrameHandler @Inject constructor(
                         try {
                             logger.info("ecdh encrypted")
                             val decrypted = ecdhService.decrypt(auth!!, message)
-                            val decoded = Codec.anyCodec<Message>().read(decrypted)
+                            val decoded = Codec.anyCodec<CodecMessage>().read(decrypted)
                             when (decoded) {
                                 is E2ERequest -> updates.send(SendUpdate(decoded.to, decoded))
                                 is E2EResponse -> updates.send(SendUpdate(decoded.to, decoded))
@@ -129,8 +135,7 @@ class WebSocketFrameHandler @Inject constructor(
                 is SendMessage -> {
                     if (auth != null) {
                         try {
-                            logger.info("send encrypted {}", message.message)
-                            val encoded = Codec.anyCodec<Message>().write(message.message)
+                            val encoded = Codec.anyCodec<CodecMessage>().write(message.message)
                             val encrypted = ecdhService.encrypt(auth!!, encoded)
                             send(encrypted)
                         } catch (e: Exception) {
@@ -150,8 +155,8 @@ class WebSocketFrameHandler @Inject constructor(
             auth = null
         }
 
-        private fun send(message: Message) {
-            val out = Codec.anyCodec<Message>().write(message)
+        private fun send(message: CodecMessage) {
+            val out = Codec.anyCodec<CodecMessage>().write(message)
             val frame = BinaryWebSocketFrame(Unpooled.wrappedBuffer(out))
             channel.writeAndFlush(frame, channel.voidPromise())
         }

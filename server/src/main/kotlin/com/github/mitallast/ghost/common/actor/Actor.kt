@@ -1,10 +1,10 @@
 package com.github.mitallast.ghost.common.actor
 
 import com.google.inject.Provider
-import io.netty.channel.DefaultEventLoop
 import io.vavr.concurrent.Future
 import io.vavr.concurrent.Promise
 import org.apache.logging.log4j.LogManager
+import java.util.concurrent.Executors
 
 abstract class Actor(private val system: ActorSystem) : Provider<ActorRef> {
     protected val self: ActorRef = system.materialize(this)
@@ -110,24 +110,40 @@ internal object NoopActorRef : ActorRef {
 
 internal class DefaultActorSystem : ActorSystem {
     private val logger = LogManager.getLogger()
-    private val eventLoop = DefaultEventLoop()
+    private val eventLoop = Executors.newSingleThreadExecutor()
 
     override fun materialize(actor: Actor): ActorRef {
         return DefaultActorRef(this, actor)
     }
 
     internal fun send(actor: Actor, message: Any, sender: ActorRef) {
+        logger.info("queue {} {} {}", actor, message, sender)
         eventLoop.execute {
             try {
+                logger.info("execute {} {} {}", actor, message, sender)
                 actor.handle(message, sender)
             } catch (e: Throwable) {
-                logger.error(e)
+                logger.error("error execute actor", e)
+                sender.send(e)
+            } finally {
+                logger.info("execute done")
             }
         }
     }
 
     internal fun send(actor: Actor, error: Throwable, sender: ActorRef) {
-        eventLoop.execute { actor.handle(error, sender) }
+        logger.info("queue {} {} {}", actor, error, sender)
+        eventLoop.execute {
+            try {
+                logger.info("execute {} {} {}", actor, error, sender)
+                actor.handle(error, sender)
+            } catch (e: Throwable) {
+                logger.error("error execute actor", e)
+                sender.send(e)
+            } finally {
+                logger.info("execute done")
+            }
+        }
     }
 
     internal fun ack(actor: Actor, message: Any): Future<Any> {

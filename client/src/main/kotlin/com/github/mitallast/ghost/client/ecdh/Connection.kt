@@ -4,25 +4,42 @@ import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
+import org.khronos.webgl.ArrayBuffer
 import org.w3c.dom.ARRAYBUFFER
 import org.w3c.dom.BinaryType
 import org.w3c.dom.WebSocket
+import kotlin.browser.window
 
 interface IConnection {
     fun isConnected(): Boolean
-    fun send(message: Message)
+    fun send(message: CodecMessage)
     fun close()
 }
 
 interface ConnectionListener {
     suspend fun connected(connection: IConnection)
     suspend fun disconnected(connection: IConnection)
-    suspend fun handle(message: Message)
+    suspend fun handle(message: CodecMessage)
+}
+
+object ConnectionResolver {
+    fun resolve(): String {
+        return if (window.location.hostname == "localhost")
+            "ws://localhost:8800/ws/"
+        else build()
+    }
+
+    fun build(): String {
+        return (if (window.location.protocol == "https:") "wss://" else "ws://") +
+            window.location.hostname +
+            (if (window.location.port.isEmpty()) "" else ":" + window.location.port) +
+            "/ws/"
+    }
 }
 
 object ConnectionFactory {
-    private const val url = "ws://localhost:8800/ws/"
+    private val url: String = ConnectionResolver.resolve()
 
     fun connect(listener: ConnectionListener) {
         console.log("connect to", url)
@@ -32,9 +49,9 @@ object ConnectionFactory {
 
             override fun isConnected(): Boolean = connected
 
-            override fun send(message: Message) {
+            override fun send(message: CodecMessage) {
                 if (isConnected()) {
-                    val encoded = Codec.anyCodec<Message>().write(message)
+                    val encoded = Codec.anyCodec<CodecMessage>().write(message)
                     console.info("socket", socket.readyState)
                     socket.send(toArrayBuffer(encoded))
                     console.info("message sent")
@@ -56,8 +73,8 @@ object ConnectionFactory {
             launch { listener.connected(connection) }
         }
         socket.onmessage = { e ->
-            val bytes = toByteArray(e.asDynamic().data)
-            val message = Codec.anyCodec<Message>().read(bytes)
+            val bytes = toByteArray(e.asDynamic().data as ArrayBuffer)
+            val message = Codec.anyCodec<CodecMessage>().read(bytes)
             console.log("received", message)
             launch { listener.handle(message) }
         }

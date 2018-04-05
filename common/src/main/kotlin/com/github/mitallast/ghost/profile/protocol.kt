@@ -1,7 +1,7 @@
 package com.github.mitallast.ghost.profile
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.files.Thumb
 
 class UserProfile(
@@ -9,7 +9,7 @@ class UserProfile(
     val fullname: String,
     val nickname: String,
     val avatar: Thumb?
-) : Message {
+) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {

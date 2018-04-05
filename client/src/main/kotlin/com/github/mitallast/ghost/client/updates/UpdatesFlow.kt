@@ -2,7 +2,7 @@ package com.github.mitallast.ghost.client.updates
 
 import com.github.mitallast.ghost.client.e2e.E2EFlow
 import com.github.mitallast.ghost.client.ecdh.ECDHController
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2ERequest
 import com.github.mitallast.ghost.e2e.E2EResponse
@@ -12,7 +12,7 @@ import com.github.mitallast.ghost.updates.UpdateInstalled
 import com.github.mitallast.ghost.updates.UpdateRejected
 
 object UpdatesFlow {
-    suspend fun handle(message: Message) {
+    suspend fun handle(message: CodecMessage) {
         when (message) {
             is Update -> {
                 val lastInstalled = UpdatesStore.loadLastInstalled()
@@ -49,7 +49,7 @@ object UpdatesFlow {
         }
     }
 
-    private suspend fun installUpdate(update: Message) {
+    private suspend fun installUpdate(update: CodecMessage) {
         console.log("install update", update)
         when (update) {
             is E2ERequest -> E2EFlow.handle(update)

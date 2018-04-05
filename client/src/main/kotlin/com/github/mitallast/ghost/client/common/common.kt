@@ -7,8 +7,10 @@ import org.khronos.webgl.set
 import kotlin.coroutines.experimental.*
 import kotlin.js.Promise
 
-suspend fun <T> Promise<T>.await(): T = suspendCoroutine { cont ->
-    then({ cont.resume(it) }, { cont.resumeWithException(it) })
+suspend fun <T> Promise<T>.await(): T {
+    return suspendCoroutine { cont ->
+        then({ cont.resume(it) }, { cont.resumeWithException(it) })
+    }
 }
 
 fun launch(block: suspend () -> Unit) {
@@ -22,7 +24,10 @@ fun launch(block: suspend () -> Unit) {
 }
 
 fun toByteArray(array: ArrayBuffer): ByteArray {
-    val view = Uint8Array(array)
+    return toByteArray(Uint8Array(array))
+}
+
+fun toByteArray(view: Uint8Array): ByteArray {
     return ByteArray(view.length, { view[it] })
 }
 

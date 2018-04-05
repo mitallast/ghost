@@ -3,7 +3,7 @@ package com.github.mitallast.ghost.updates
 import com.github.mitallast.ghost.common.actor.Actor
 import com.github.mitallast.ghost.common.actor.ActorRef
 import com.github.mitallast.ghost.common.actor.ActorSystem
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.session.SessionSend
 import com.google.inject.Inject
 import com.google.inject.name.Named
@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.bouncycastle.util.encoders.Hex
 
 class ForceUpdate(val auth: ByteArray)
-class SendUpdate(val auth: ByteArray, val update: Message)
+class SendUpdate(val auth: ByteArray, val update: CodecMessage)
 class AuthUpdateInstalled(val auth: ByteArray, val last: Long)
 class AuthUpdateRejected(val auth: ByteArray, val last: Long)
 
@@ -38,7 +38,7 @@ class UpdatesActor @Inject constructor(
                 logger.info("received force update auth={}", Hex.toHexString(message.auth))
                 val currentSequence = updatesStore.currentSequence(message.auth)
                 val lastInstalled = updatesStore.lastInstalled(message.auth)
-                maybeSendUpdates(message.auth, currentSequence, lastInstalled)
+                maybeSendUpdates(message.auth, lastInstalled, currentSequence)
             }
             is AuthUpdateInstalled -> {
                 logger.info("received update installed auth={} i={}", Hex.toHexString(message.auth), message.last)
@@ -56,6 +56,7 @@ class UpdatesActor @Inject constructor(
     }
 
     private fun maybeSendUpdates(auth: ByteArray, lastInstalled: Long, currentSequence: Long) {
+        logger.info("current=$currentSequence last=$lastInstalled")
         if (lastInstalled < currentSequence) {
             val updates = updatesStore.loadFrom(auth, lastInstalled, 100)
             logger.info("send install update {}", updates.size)

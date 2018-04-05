@@ -1,13 +1,13 @@
 package com.github.mitallast.ghost.ecdh
 
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.common.codec.Codec
 
 class ECDHRequest(
     val ecdhPublicKey: ByteArray,
     val ecdsaPublicKey: ByteArray,
     val sign: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 
@@ -29,7 +29,7 @@ class ECDHResponse(
     val auth: ByteArray,
     val ecdhPublicKey: ByteArray,
     val sign: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 
@@ -50,7 +50,7 @@ class ECDHResponse(
 class ECDHReconnect(
     val auth: ByteArray,
     val sign: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 
@@ -71,7 +71,7 @@ class ECDHEncrypted(
     val sign: ByteArray,
     val iv: ByteArray,
     val encrypted: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 

@@ -3,8 +3,7 @@ package com.github.mitallast.ghost.session
 import com.github.mitallast.ghost.common.actor.Actor
 import com.github.mitallast.ghost.common.actor.ActorRef
 import com.github.mitallast.ghost.common.actor.ActorSystem
-import com.github.mitallast.ghost.common.codec.Message
-import com.github.mitallast.ghost.rest.netty.CloseChannel
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.rest.netty.SendMessage
 import com.google.inject.Inject
 import org.apache.logging.log4j.LogManager
@@ -12,7 +11,7 @@ import org.bouncycastle.util.encoders.Hex
 
 class SessionRegistered(val auth: ByteArray)
 class SessionInactive(val auth: ByteArray)
-class SessionSend(val auth: ByteArray, val message: Message)
+class SessionSend(val auth: ByteArray, val message: CodecMessage)
 
 class SessionActor @Inject constructor(system: ActorSystem) : Actor(system) {
     private val logger = LogManager.getLogger()

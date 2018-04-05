@@ -114,7 +114,7 @@ external interface IDBObjectStore {
     fun <T> getAll(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<T>>
     fun getAllKeys(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<dynamic>>
     fun count(query: dynamic = definedExternally): IDBRequest<dynamic>
-    fun openCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<dynamic>
+    fun openCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<IDBCursorWithValue?>
     fun openKeyCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<dynamic>
     fun index(name: String): IDBIndex
     fun createIndex(name: String, keyPath: String, options: Json = definedExternally): IDBRequest<dynamic>
@@ -136,7 +136,7 @@ external interface IDBIndex {
     fun getAll(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<dynamic>>
     fun getAllKeys(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<dynamic>>
     fun count(query: dynamic = definedExternally): IDBRequest<dynamic>
-    fun openCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<dynamic>
+    fun openCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<IDBCursor?>
     fun openKeyCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<dynamic>
 }
 

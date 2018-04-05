@@ -54,6 +54,8 @@ object ProfileController {
 
     suspend fun editProfile(profile: UserProfile) {
         updateProfile(profile)
+        SidebarSettingsController.show()
+        ProfileController.showAddress()
     }
 
     suspend fun newContact(auth: ByteArray) {

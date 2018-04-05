@@ -1,9 +1,9 @@
 package com.github.mitallast.ghost.updates
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 
-class Update(val sequence: Long, val update: Message) : Message {
+class Update(val sequence: Long, val update: CodecMessage) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {
@@ -18,7 +18,7 @@ class Update(val sequence: Long, val update: Message) : Message {
     }
 }
 
-class InstallUpdate(val updates: List<Update>) : Message {
+class InstallUpdate(val updates: List<Update>) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {
@@ -31,7 +31,7 @@ class InstallUpdate(val updates: List<Update>) : Message {
     }
 }
 
-class UpdateInstalled(val last: Long) : Message {
+class UpdateInstalled(val last: Long) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {
@@ -44,7 +44,7 @@ class UpdateInstalled(val last: Long) : Message {
     }
 }
 
-class UpdateRejected(val last: Long) : Message {
+class UpdateRejected(val last: Long) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {

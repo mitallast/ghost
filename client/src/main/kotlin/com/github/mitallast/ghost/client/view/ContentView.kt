@@ -28,6 +28,7 @@ object ContentMainController {
     fun hide() {
         if (last != null) {
             ContentMainView.remove(last!!)
+            last = null
         }
     }
 }
@@ -57,6 +58,7 @@ object ContentFooterController {
     fun hide() {
         if (last != null) {
             ContentFooterView.remove(last!!)
+            last = null
         }
     }
 }

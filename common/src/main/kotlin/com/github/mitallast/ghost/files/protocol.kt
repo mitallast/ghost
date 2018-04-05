@@ -1,13 +1,13 @@
 package com.github.mitallast.ghost.files
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 
 class Thumb(
     val width: Int,
     val height: Int,
     val thumb: ByteArray
-) : Message {
+) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {

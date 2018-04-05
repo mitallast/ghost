@@ -1,7 +1,7 @@
 package com.github.mitallast.ghost.e2e
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 
 class E2ERequest(
     val from: ByteArray,
@@ -9,7 +9,7 @@ class E2ERequest(
     val ecdhPublicKey: ByteArray,
     val ecdsaPublicKey: ByteArray,
     val sign: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 
@@ -37,7 +37,7 @@ class E2EResponse(
     val ecdhPublicKey: ByteArray,
     val ecdsaPublicKey: ByteArray,
     val sign: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 
@@ -65,7 +65,7 @@ class E2EEncrypted(
     val sign: ByteArray,
     val iv: ByteArray,
     val encrypted: ByteArray
-) : Message {
+) : CodecMessage {
 
     override fun messageId(): Int = messageId
 

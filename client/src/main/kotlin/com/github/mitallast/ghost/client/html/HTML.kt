@@ -17,10 +17,10 @@ abstract class Element(name: String, ns: String? = null) {
     }
 
     fun show() {
-        attr("style", "display: none;")
+        element.asDynamic().style.visibility = "visible"
     }
     fun hide() {
-        attr("style", "display: none;")
+        element.asDynamic().style.visibility = "hidden"
     }
 
     fun div(init: DIV.() -> Unit): DIV = initTag(DIV(), init)
@@ -144,7 +144,7 @@ class TEXT(text: String) {
     internal val node = window.document.createTextNode(text)
 
     fun text(text: String) {
-        node.replaceWith(text)
+        node.data = text
     }
 }
 

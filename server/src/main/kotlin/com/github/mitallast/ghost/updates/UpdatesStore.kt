@@ -1,7 +1,7 @@
 package com.github.mitallast.ghost.updates
 
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.persistent.PersistentService
 import com.google.inject.Inject
 import org.apache.logging.log4j.LogManager
@@ -22,12 +22,12 @@ class UpdatesStore @Inject constructor(private val db: PersistentService) {
         })
     }
 
-    fun append(auth: ByteArray, update: Message): Long {
+    fun append(auth: ByteArray, update: CodecMessage): Long {
         val current = currentSequence(auth)
         val next = current + 1
         val nextBuffer = Codec.longCodec().write(next)
         db.put(sequenceCF, auth, nextBuffer)
-        db.put(logCF(auth), nextBuffer, Codec.anyCodec<Message>().write(update))
+        db.put(logCF(auth), nextBuffer, Codec.anyCodec<CodecMessage>().write(update))
         return next
     }
 
@@ -63,7 +63,7 @@ class UpdatesStore @Inject constructor(private val db: PersistentService) {
             val current = Codec.longCodec().read(currentBuffer)
             logger.info("i=$current")
             if (current > last) {
-                val message = Codec.anyCodec<Message>().read(iterator.value())
+                val message = Codec.anyCodec<CodecMessage>().read(iterator.value())
                 val update = Update(current, message)
                 updates.add(update)
             }

@@ -6,15 +6,15 @@ import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.*
 import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
 import com.github.mitallast.ghost.client.ecdh.ECDHController
+import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.prompt.PromptView
-import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.common.codec.Codec
-import com.github.mitallast.ghost.common.codec.Message
+import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2ERequest
 import com.github.mitallast.ghost.e2e.E2EResponse
-import com.github.mitallast.ghost.message.TextMessage
+import com.github.mitallast.ghost.message.Message
 import com.github.mitallast.ghost.profile.UserProfile
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
@@ -182,9 +182,9 @@ object E2EFlow {
         }
     }
 
-    suspend fun send(to: ByteArray, message: Message) {
+    suspend fun send(to: ByteArray, message: CodecMessage) {
         console.log("send e2e", HEX.toHex(to), message)
-        val encoded = Codec.anyCodec<Message>().write(message)
+        val encoded = Codec.anyCodec<CodecMessage>().write(message)
         console.log("get auth for e2e encryption")
         val auth = ECDHController.auth()
         console.log("encrypt e2e")
@@ -193,7 +193,7 @@ object E2EFlow {
         ECDHController.send(encrypted)
     }
 
-    suspend fun handle(update: Message) {
+    suspend fun handle(update: CodecMessage) {
         when (update) {
             is E2ERequest -> {
                 console.log("e2e request received")
@@ -209,11 +209,11 @@ object E2EFlow {
             is E2EEncrypted -> {
                 console.log("e2e encrypted received")
                 val decrypted = E2EDHFlow.decrypt(update)
-                val decoded = Codec.anyCodec<Message>().read(toByteArray(decrypted))
+                val decoded = Codec.anyCodec<CodecMessage>().read(toByteArray(decrypted))
                 console.log("e2e received", decoded)
                 when (decoded) {
                     is UserProfile -> ProfileController.updateProfile(decoded)
-                    is TextMessage -> MessagesController.handle(update.from, decoded)
+                    is Message -> MessagesController.handle(update.from, decoded)
                 }
             }
         }

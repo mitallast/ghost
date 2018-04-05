@@ -9,10 +9,6 @@ object ApplicationController {
         ApplicationView.root.appendToBody()
         launch { ECDHController.start() }
     }
-
-    fun startNewDialog() {
-
-    }
 }
 
 object ApplicationView : View {

@@ -5,7 +5,7 @@ import kotlinx.io.ByteArrayOutputStream
 import kotlinx.io.InputStream
 import kotlinx.io.OutputStream
 
-interface Message {
+interface CodecMessage {
     fun messageId(): Int
 }
 
@@ -27,7 +27,7 @@ interface Codec<T> {
 
     companion object {
 
-        fun <T : Message> register(code: Int, codec: Codec<T>) {
+        fun <T : CodecMessage> register(code: Int, codec: Codec<T>) {
             AnyCodec.register(code, codec)
         }
 
@@ -37,7 +37,7 @@ interface Codec<T> {
         fun stringCodec(): Codec<String> = StringCodec
         fun bytesCodec(): Codec<ByteArray> = ByteArrayCodec
 
-        fun <T : Message> anyCodec(): Codec<T> = AnyCodec()
+        fun <T : CodecMessage> anyCodec(): Codec<T> = AnyCodec()
         fun <T : Enum<T>> enumCodec(vararg enums: T): Codec<T> = EnumCodec(enums.asIterable())
         fun <T> optionCodec(codec: Codec<T>): Codec<T?> = OptionCodec(codec)
         fun <T> listCodec(codec: Codec<T>): Codec<List<T>> = ListCodec(codec)
@@ -493,7 +493,7 @@ internal class StaticCodec<T>(private val value: T) : Codec<T> {
 }
 
 @Suppress("UNCHECKED_CAST")
-internal class AnyCodec<T : Message> : Codec<T> {
+internal class AnyCodec<T : CodecMessage> : Codec<T> {
 
     override fun read(stream: InputStream): T {
         val id = IntCodec.read(stream)
@@ -515,7 +515,7 @@ internal class AnyCodec<T : Message> : Codec<T> {
     companion object {
         private val idToCodecMap = HashMap<Int, Codec<*>>()
 
-        fun <T : Message> register(code: Int, codec: Codec<T>) {
+        fun <T : CodecMessage> register(code: Int, codec: Codec<T>) {
             require(!idToCodecMap.containsKey(code))
             idToCodecMap[code] = codec
         }

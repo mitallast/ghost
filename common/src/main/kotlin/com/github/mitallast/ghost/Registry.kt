@@ -3,20 +3,20 @@ package com.github.mitallast.ghost
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.ecdh.*
 import com.github.mitallast.ghost.e2e.*
-import com.github.mitallast.ghost.files.Thumb
+import com.github.mitallast.ghost.files.*
 import com.github.mitallast.ghost.updates.*
-import com.github.mitallast.ghost.message.TextMessage
+import com.github.mitallast.ghost.message.*
 import com.github.mitallast.ghost.profile.UserProfile
 
 
 object Registry {
     object mask {
-        val ecdh = 0x0100
-        val e2e = 0x0200
-        val update = 0x0300
-        val profile = 0x0400
-        val files = 0x0500
-        val message = 0xFF00
+        const val ecdh = 0x0100
+        const val e2e = 0x0200
+        const val update = 0x0300
+        const val profile = 0x0400
+        const val files = 0x0500
+        const val message = 0x0600
     }
 
     fun register() {
@@ -38,6 +38,8 @@ object Registry {
 
         Codec.register(Thumb.messageId, Thumb.codec)
 
+        Codec.register(Message.messageId, Message.codec)
         Codec.register(TextMessage.messageId, TextMessage.codec)
+        Codec.register(ServiceMessage.messageId, ServiceMessage.codec)
     }
 }

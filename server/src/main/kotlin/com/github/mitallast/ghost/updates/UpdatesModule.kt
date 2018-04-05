@@ -1,7 +1,6 @@
 package com.github.mitallast.ghost.updates
 
 import com.github.mitallast.ghost.common.actor.ActorRef
-import com.github.mitallast.ghost.common.codec.Message
 import com.google.inject.AbstractModule
 import com.google.inject.name.Names
 
