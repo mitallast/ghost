@@ -112,7 +112,7 @@ external interface IDBObjectStore {
     fun <T> get(query: dynamic): IDBRequest<T?>
     fun getKey(query: dynamic): IDBRequest<dynamic>
     fun <T> getAll(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<T>>
-    fun getAllKeys(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<dynamic>>
+    fun <T> getAllKeys(query: dynamic = definedExternally, count: Int = definedExternally): IDBRequest<Array<T>>
     fun count(query: dynamic = definedExternally): IDBRequest<dynamic>
     fun openCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<IDBCursorWithValue?>
     fun openKeyCursor(query: dynamic = definedExternally, direction: String = definedExternally): IDBRequest<dynamic>

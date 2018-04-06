@@ -24,8 +24,13 @@ object E2EDHFlow {
         val ecdh = ECDH.generateKey(CurveP521).await()
         val ecdsa = ECDSA.generateKey(CurveP521).await()
 
-        E2EAuthStore.storeECDH(to, ecdh.publicKey, ecdh.privateKey)
-        E2EAuthStore.storeECDSA(to, ecdsa.publicKey, ecdsa.privateKey)
+        val request = E2EAuthRequest(
+            to,
+            ecdh.publicKey, ecdh.privateKey,
+            ecdsa.publicKey, ecdsa.privateKey
+        )
+
+        E2EAuthStore.storeRequest(request)
 
         val ecdhPublicKey = ECDH.exportPublicKey(ecdh.publicKey).await()
         val ecdsaPublicKey = ECDSA.exportPublicKey(ecdsa.publicKey).await()
@@ -81,7 +86,7 @@ object E2EDHFlow {
 
         E2EAuthStore.storeAuth(fromAuth)
 
-        console.log("e2e by request complete", HEX.toHex(fromAuth.auth))
+        console.log("e2e by request removeRequest", HEX.toHex(fromAuth.auth))
 
         val buffer2 = toArrayBuffer(auth.auth, request.from, ecdhPublicKey, ecdsaPublicKey)
         val sign = ECDSA.sign(HashSHA512, ecdsa.privateKey, buffer2).await()
@@ -96,10 +101,7 @@ object E2EDHFlow {
     }
 
     suspend fun keyAgreement(response: E2EResponse): E2EAuth {
-        val (_, ecdhPrivateKey) = E2EAuthStore.loadECDH(response.from)
-        val (_, ecdsaPrivateKey) = E2EAuthStore.loadECDSA(response.from)
-
-        E2EAuthStore.complete(response.from)
+        val request = E2EAuthStore.loadRequest(response.from)
 
         val fromECDHPublicBuffer = toArrayBuffer(response.ecdhPublicKey)
         val fromECDSAPublicBuffer = toArrayBuffer(response.ecdsaPublicKey)
@@ -114,7 +116,7 @@ object E2EDHFlow {
         }
 
         // 528 = 66 bytes
-        val secret = ECDH.deriveBits(CurveP521, fromECDHPublicKey, ecdhPrivateKey, 528).await()
+        val secret = ECDH.deriveBits(CurveP521, fromECDHPublicKey, request.ecdhPrivateKey, 528).await()
 
         // use PBKDF2 as KDF function
         val pwd = PromptView.prompt("e2e: " + HEX.toHex(response.from)).await()
@@ -125,10 +127,11 @@ object E2EDHFlow {
             response.from,
             secretKey,
             fromECDSAPublicKey,
-            ecdsaPrivateKey
+            request.ecdsaPrivateKey
         )
 
         E2EAuthStore.storeAuth(auth)
+        E2EAuthStore.removeRequest(response.from)
 
         return auth
     }

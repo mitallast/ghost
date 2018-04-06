@@ -26,10 +26,12 @@ object PromptView {
                             attr("required", "required")
                             append(password)
                             button {
+                                attr("class", "btn")
                                 type("submit")
                                 text("OK")
                             }
                             button {
+                                attr("class", "btn")
                                 type("button")
                                 text("Cancel")
                                 onclick {

@@ -1,6 +1,7 @@
 package com.github.mitallast.ghost.client.view
 
 import com.github.mitallast.ghost.client.deletion.SidebarDeleteAllMenuItem
+import com.github.mitallast.ghost.client.e2e.SidebarPendingRequestsMenuView
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.*
 
@@ -20,6 +21,7 @@ object SidebarSettingsMenuView : View {
             append(SidebarProfileView.root)
             append(SidebarAddressMenuView.root)
             append(SidebarAddDialogMenuView.root)
+            append(SidebarPendingRequestsMenuView.root)
             append(SidebarDeleteAllMenuItem.root)
         }
     }

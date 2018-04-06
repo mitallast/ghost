@@ -43,6 +43,7 @@ object DeleteAllView : View {
             div {
                 attr("class", "form-button")
                 button {
+                    attr("class", "btn")
                     type("submit")
                     text("REMOVE")
                 }
