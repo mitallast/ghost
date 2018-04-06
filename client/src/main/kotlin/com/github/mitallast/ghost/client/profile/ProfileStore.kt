@@ -22,12 +22,10 @@ object ProfileStore {
     }
 
     suspend fun cleanup() {
+        console.log("cleanup profiles")
         val d = db.await()
-        val tx = d.transaction(d.objectStoreNames, "readwrite")
-        for (store in d.objectStoreNames) {
-            tx.objectStore(store).delete(IDBKeyRange.bound(null, null)).await()
-        }
-        tx.await()
+        d.close()
+        indexedDB.deleteDatabase(d.name).await()
     }
 
     suspend fun updateProfile(profile: UserProfile) {

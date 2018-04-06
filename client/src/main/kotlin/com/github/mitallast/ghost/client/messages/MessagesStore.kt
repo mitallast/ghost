@@ -32,12 +32,10 @@ object MessagesStore {
     }
 
     suspend fun cleanup() {
+        console.log("cleanup messages")
         val d = db.await()
-        val tx = d.transaction(d.objectStoreNames, "readwrite")
-        for (store in d.objectStoreNames) {
-            tx.objectStore(store).delete(IDBKeyRange.bound(null, null)).await()
-        }
-        tx.await()
+        d.close()
+        indexedDB.deleteDatabase(d.name).await()
     }
 
     suspend fun put(dialog: ByteArray, message: Message) {

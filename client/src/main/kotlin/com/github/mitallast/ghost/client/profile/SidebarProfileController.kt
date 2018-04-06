@@ -1,6 +1,7 @@
 package com.github.mitallast.ghost.client.profile
 
 import com.github.mitallast.ghost.client.common.launch
+import com.github.mitallast.ghost.client.html.DIV
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.view.View

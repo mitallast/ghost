@@ -20,12 +20,10 @@ internal object UpdatesStore {
     }
 
     suspend fun cleanup() {
+        console.log("cleanup updates")
         val d = db.await()
-        val tx = d.transaction(d.objectStoreNames, "readwrite")
-        for(store in d.objectStoreNames) {
-            tx.objectStore(store).delete(IDBKeyRange.lowerBound(0)).await()
-        }
-        tx.await()
+        d.close()
+        indexedDB.deleteDatabase(d.name).await()
     }
 
     suspend fun updateLastInstalled(sequence: Long) {

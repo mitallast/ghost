@@ -1,10 +1,8 @@
 package com.github.mitallast.ghost.client.view
 
+import com.github.mitallast.ghost.client.deletion.SidebarDeleteAllMenuItem
 import com.github.mitallast.ghost.client.html.div
-import com.github.mitallast.ghost.client.profile.SidebarAddDialogMenuView
-import com.github.mitallast.ghost.client.profile.SidebarAddressMenuView
-import com.github.mitallast.ghost.client.profile.SidebarProfileController
-import com.github.mitallast.ghost.client.profile.SidebarProfileView
+import com.github.mitallast.ghost.client.profile.*
 
 object SidebarSettingsController {
     suspend fun show() {
@@ -22,6 +20,7 @@ object SidebarSettingsMenuView : View {
             append(SidebarProfileView.root)
             append(SidebarAddressMenuView.root)
             append(SidebarAddDialogMenuView.root)
+            append(SidebarDeleteAllMenuItem.root)
         }
     }
 }

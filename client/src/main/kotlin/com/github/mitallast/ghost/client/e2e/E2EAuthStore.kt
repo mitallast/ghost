@@ -35,12 +35,10 @@ object E2EAuthStore {
     }
 
     suspend fun cleanup() {
+        console.log("cleanup e2e")
         val d = db.await()
-        val tx = d.transaction(d.objectStoreNames, "readwrite")
-        for(store in d.objectStoreNames) {
-            tx.objectStore(store).delete(IDBKeyRange.bound(null, null)).await()
-        }
-        tx.await()
+        d.close()
+        indexedDB.deleteDatabase(d.name).await()
     }
 
     suspend fun storeAuth(auth: E2EAuth) {
