@@ -144,7 +144,6 @@ object ECDHController {
         override suspend fun disconnected(connection: IConnection) {
             ECDHController.reconnect()
             resolve.invoke(connection)
-            ECDHController.authorized()
         }
 
         override suspend fun handle(message: CodecMessage) {

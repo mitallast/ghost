@@ -2,18 +2,11 @@ package com.github.mitallast.ghost.client.profile
 
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.crypto.HEX
-import com.github.mitallast.ghost.client.e2e.E2EAuthStore
 import com.github.mitallast.ghost.client.e2e.E2EFlow
-import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
-import com.github.mitallast.ghost.client.messages.MessagesStore
-import com.github.mitallast.ghost.client.persistent.await
-import com.github.mitallast.ghost.client.persistent.indexedDB
-import com.github.mitallast.ghost.client.updates.UpdatesStore
 import com.github.mitallast.ghost.client.view.*
 import com.github.mitallast.ghost.profile.UserProfile
-import kotlin.browser.window
 
 object ProfileController {
     private var id: ByteArray? = null
