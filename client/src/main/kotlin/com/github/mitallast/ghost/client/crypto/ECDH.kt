@@ -40,17 +40,18 @@ object ECDH {
     }
 
     fun exportPublicKey(key: ECDHPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("spki", key)
+        return crypto.subtle.exportKey("spki", key).then { ECWrap.maybeWrap(it) }
     }
 
     fun exportPrivateKey(key: ECDHPrivateKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("pkcs8", key)
+        console.log("export ECDH private key")
+        return crypto.subtle.exportKey(ECWrap.privateKeyFormat(), key)
     }
 
     fun importPublicKey(curve: Curve, key: ArrayBuffer): Promise<ECDHPublicKey> {
         return crypto.subtle.importKey(
             format = "spki",
-            keyData = key,
+            keyData = ECWrap.maybeUnwrap(key),
             algorithm = json(Pair("name", name), Pair("namedCurve", curve.name)),
             extractable = true,
             keyUsages = arrayOf()
@@ -59,7 +60,7 @@ object ECDH {
 
     fun importPrivateKey(curve: Curve, key: ArrayBuffer): Promise<ECDHPrivateKey> {
         return crypto.subtle.importKey(
-            format = "pkcs8",
+            format = ECWrap.privateKeyFormat(),
             keyData = key,
             algorithm = json(Pair("name", name), Pair("namedCurve", curve.name)),
             extractable = true,

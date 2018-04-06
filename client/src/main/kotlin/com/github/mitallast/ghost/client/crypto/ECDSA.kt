@@ -40,25 +40,18 @@ object ECDSA {
     }
 
     fun exportPublicKey(key: ECDSAPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("spki", key)
-    }
-
-    fun exportPublicKeyJWK(key: ECDSAPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("jwk", key)
-    }
-
-    fun exportPublicKeyRaw(key: ECDSAPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("raw", key)
+        return crypto.subtle.exportKey("spki", key).then { ECWrap.maybeWrap(it) }
     }
 
     fun exportPrivateKey(key: ECDSAPrivateKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("pkcs8", key)
+        console.log("export ECDSA private key")
+        return crypto.subtle.exportKey(ECWrap.privateKeyFormat(), key)
     }
 
     fun importPublicKey(curve: Curve, key: ArrayBuffer): Promise<ECDSAPublicKey> {
         return crypto.subtle.importKey(
             format = "spki",
-            keyData = key,
+            keyData = ECWrap.maybeUnwrap(key),
             algorithm = json(Pair("name", name), Pair("namedCurve", curve.name)),
             extractable = true,
             keyUsages = arrayOf("verify")
@@ -67,7 +60,7 @@ object ECDSA {
 
     fun importPrivateKey(curve: Curve, key: ArrayBuffer): Promise<ECDSAPrivateKey> {
         return crypto.subtle.importKey(
-            format = "pkcs8",
+            format = ECWrap.privateKeyFormat(),
             keyData = key,
             algorithm = json(Pair("name", name), Pair("namedCurve", curve.name)),
             extractable = true,
