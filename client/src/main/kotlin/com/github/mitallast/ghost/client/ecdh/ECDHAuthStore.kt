@@ -21,7 +21,7 @@ internal object ECDHAuthStore {
         open.onupgradeneeded = { event ->
             val db = open.result
             if (event.oldVersion < 1) {
-                db.createObjectStore("auth")
+                db.createObjectStore("address")
                 db.createObjectStore("secretKey")
                 db.createObjectStore("publicKey")
                 db.createObjectStore("privateKey")
@@ -42,9 +42,9 @@ internal object ECDHAuthStore {
         val publicKey = ECDSA.exportPublicKey(auth.publicKey).await()
         val privateKey = ECDSA.exportPrivateKey(auth.privateKey).await()
 
-        val stores = arrayOf("auth", "secretKey", "publicKey", "privateKey")
+        val stores = arrayOf("address", "secretKey", "publicKey", "privateKey")
         val tx = db.await().transaction(stores, "readwrite")
-        tx.objectStore("auth").put(auth.auth, "self").await()
+        tx.objectStore("address").put(auth.auth, "self").await()
         tx.objectStore("secretKey").put(secretKey, "self").await()
         tx.objectStore("publicKey").put(publicKey, "self").await()
         tx.objectStore("privateKey").put(privateKey, "self").await()
@@ -52,9 +52,9 @@ internal object ECDHAuthStore {
     }
 
     suspend fun loadAuth(): ECDHAuth? {
-        val stores = arrayOf("auth", "secretKey", "publicKey", "privateKey")
+        val stores = arrayOf("address", "secretKey", "publicKey", "privateKey")
         val tx = db.await().transaction(stores)
-        val auth = tx.objectStore("auth").get<ByteArray>("self").await()
+        val auth = tx.objectStore("address").get<ByteArray>("self").await()
         val secretKeyB = tx.objectStore("secretKey").get<ArrayBuffer>("self").await()
         val publicKeyB = tx.objectStore("publicKey").get<ArrayBuffer>("self").await()
         val privateKeyB = tx.objectStore("privateKey").get<ArrayBuffer>("self").await()

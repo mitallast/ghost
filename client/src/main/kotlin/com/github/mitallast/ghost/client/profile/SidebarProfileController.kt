@@ -1,7 +1,6 @@
 package com.github.mitallast.ghost.client.profile
 
 import com.github.mitallast.ghost.client.common.launch
-import com.github.mitallast.ghost.client.html.DIV
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.view.View
@@ -39,7 +38,7 @@ object SidebarProfileController {
 
 object SidebarProfileView : View {
     override val root = div {
-        attr("class", "main-info-container")
+        clazz("main-info-container")
     }
 
     fun view(view: View) {
@@ -53,9 +52,9 @@ object SidebarProfileView : View {
 
 class SidebarProfilePreView(profile: UserProfile) : View {
     override val root = div {
-        attr("class", "main-info")
+        clazz("main-info")
         a {
-            attr("class", "main-info-edit")
+            clazz("main-info-edit")
             svg {
                 attr("viewBox", "0 0 18 18")
                 path {
@@ -67,9 +66,9 @@ class SidebarProfilePreView(profile: UserProfile) : View {
             onclick { launch { SidebarProfileController.edit() } }
         }
         div {
-            attr("class", "main-info-avatar")
+            clazz("main-info-avatar")
             div {
-                attr("class", "main-info-avatar-placeholder")
+                clazz("main-info-avatar-placeholder")
                 text(profile.fullname.substring(0, 1))
 
             }
@@ -86,9 +85,9 @@ class SidebarProfileFormView(profile: UserProfile) : View {
     }
 
     override val root = div {
-        attr("class", "main-info")
+        clazz("main-info")
         a {
-            attr("class", "main-info-save")
+            clazz("main-info-save")
             text("save")
             onclick { e ->
                 e.preventDefault()
@@ -97,25 +96,25 @@ class SidebarProfileFormView(profile: UserProfile) : View {
                     fullnameInput.focus()
                 } else {
                     val updated = UserProfile(
-                        id = profile.id,
-                        fullname = fullnameInput.value(),
-                        nickname = profile.nickname,
-                        avatar = profile.avatar
+                            id = profile.id,
+                            fullname = fullnameInput.value(),
+                            nickname = profile.nickname,
+                            avatar = profile.avatar
                     )
                     launch { SidebarProfileController.updateProfile(updated) }
                 }
             }
         }
         div {
-            attr("class", "main-info-avatar avatar-edit")
+            clazz("main-info-avatar", "avatar-edit")
             div {
-                attr("class", "main-info-avatar-placeholder")
+                clazz("main-info-avatar-placeholder")
                 text(profile.fullname.substring(0, 1))
 
             }
         }
         div {
-            attr("class", "main-info-fullname-edit")
+            clazz("main-info-fullname-edit")
             append(fullnameInput)
         }
     }
@@ -123,13 +122,13 @@ class SidebarProfileFormView(profile: UserProfile) : View {
 
 object SidebarAddressMenuView : View {
     override val root = div {
-        attr("class", "sidebar-menu-item")
+        clazz("sidebar-menu-item")
         span {
-            attr("class", "sidebar-menu-text")
+            clazz("sidebar-menu-text")
             text("Address")
         }
         span {
-            attr("class", "sidebar-menu-icon")
+            clazz("sidebar-menu-icon")
             svg {
                 attr("viewBox", "0 0 8 13")
                 polygon {

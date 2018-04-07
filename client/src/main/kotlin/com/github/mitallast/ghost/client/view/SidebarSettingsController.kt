@@ -1,7 +1,10 @@
 package com.github.mitallast.ghost.client.view
 
 import com.github.mitallast.ghost.client.deletion.SidebarDeleteAllMenuItem
-import com.github.mitallast.ghost.client.e2e.SidebarPendingRequestsMenuView
+import com.github.mitallast.ghost.client.e2e.SidebarAddDialogMenuView
+import com.github.mitallast.ghost.client.e2e.SidebarIncomingRequestsMenuView
+import com.github.mitallast.ghost.client.e2e.SidebarOutgoingRequestsMenuView
+import com.github.mitallast.ghost.client.e2e.SidebarPendingResponsesMenuView
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.*
 
@@ -15,13 +18,15 @@ object SidebarSettingsController {
 
 object SidebarSettingsMenuView : View {
     override val root = div {
-        attr("class", "sidebar-menu")
+        clazz("sidebar-menu")
         div {
-            attr("class", "sidebar-menu-scroll")
+            clazz("sidebar-menu-scroll")
             append(SidebarProfileView.root)
             append(SidebarAddressMenuView.root)
             append(SidebarAddDialogMenuView.root)
-            append(SidebarPendingRequestsMenuView.root)
+            append(SidebarOutgoingRequestsMenuView.root)
+            append(SidebarIncomingRequestsMenuView.root)
+            append(SidebarPendingResponsesMenuView.root)
             append(SidebarDeleteAllMenuItem.root)
         }
     }

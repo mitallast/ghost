@@ -5,48 +5,44 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.view.*
 
-object PendingRequestsController {
+object OutgoingRequestsController {
     suspend fun view() {
         console.log("load all requests")
-        val requests = E2EAuthStore.loadRequests()
+        val requests = E2EOutgoingRequestStore.list()
         console.log("render")
-        val view = PendingRequestsView(requests)
+        val view = OutgoingRequestsView(requests)
         console.log("view")
-        ContentHeaderView.setTitle("Pending requests")
+        ContentHeaderView.setTitle("Outgoing requests")
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
 }
 
-class PendingRequestsView(private val requests: List<ByteArray>) : View {
+class OutgoingRequestsView(private val requests: List<ByteArray>) : View {
     override val root = div {
-        attr("class", "requests-list")
+        clazz("requests-list")
         div {
-            attr("class", "requests-scroll")
+            clazz("requests-scroll")
             for (request in requests) {
                 console.log("render request")
                 div {
-                    attr("class", "request-container")
+                    clazz("request-container")
                     h4 { text(HEX.toHex(request)) }
-                    button {
-                        attr("class", "btn btn-sm")
-                        text("Remove")
-                    }
                 }
             }
         }
     }
 }
 
-object SidebarPendingRequestsMenuView : View {
+object SidebarOutgoingRequestsMenuView : View {
     override val root = div {
-        attr("class", "sidebar-menu-item")
+        clazz("sidebar-menu-item")
         span {
-            attr("class", "sidebar-menu-text")
-            text("Pending requests")
+            clazz("sidebar-menu-text")
+            text("Outgoing requests")
         }
         span {
-            attr("class", "sidebar-menu-icon")
+            clazz("sidebar-menu-icon")
             svg {
                 attr("viewBox", "0 0 8 13")
                 polygon {
@@ -57,6 +53,6 @@ object SidebarPendingRequestsMenuView : View {
                 }
             }
         }
-        onclick { launch { PendingRequestsController.view() } }
+        onclick { launch { OutgoingRequestsController.view() } }
     }
 }

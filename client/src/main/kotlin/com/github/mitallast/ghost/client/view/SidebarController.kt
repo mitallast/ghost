@@ -44,7 +44,7 @@ object SidebarController {
 
 object SidebarView {
     private val menu = a {
-        attr("class", "sidebar-menu-button")
+        clazz("sidebar-menu-button")
         attr("title", "Show menu")
         svg {
             attr("viewBox", "0 0 16 14")
@@ -76,14 +76,14 @@ object SidebarView {
         onclick { SidebarController.toggle() }
     }
     val root = div {
-        attr("class", "ghost-sidebar")
+        clazz("ghost-sidebar")
         div {
-            attr("class", "sidebar-header")
+            clazz("sidebar-header")
             div {
-                attr("class", "sidebar-header-content")
+                clazz("sidebar-header-content")
                 append(menu)
                 h2 {
-                    attr("class", "sidebar-header-logo")
+                    clazz("sidebar-header-logo")
                     text("Ghost messenger")
                 }
             }

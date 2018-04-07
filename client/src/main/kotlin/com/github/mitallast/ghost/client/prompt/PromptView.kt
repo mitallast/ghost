@@ -13,25 +13,25 @@ object PromptView {
             }
             div {
                 val prompt = this
-                attr("class", "prompt-container")
+                clazz("prompt-container")
                 div {
-                    attr("class", "prompt")
+                    clazz("prompt")
                     form {
                         div {
-                            attr("class", "prompt-title")
+                            clazz("prompt-title")
                             text(title)
                         }
                         div {
-                            attr("class", "prompt-action")
-                            attr("required", "required")
+                            clazz("prompt-action")
+                            required()
                             append(password)
                             button {
-                                attr("class", "btn")
+                                clazz("btn")
                                 type("submit")
                                 text("OK")
                             }
                             button {
-                                attr("class", "btn")
+                                clazz("btn")
                                 type("button")
                                 text("Cancel")
                                 onclick {

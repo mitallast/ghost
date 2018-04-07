@@ -9,8 +9,9 @@ import com.github.mitallast.ghost.common.actor.ActorSystem
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EEncrypted
-import com.github.mitallast.ghost.e2e.E2ERequest
-import com.github.mitallast.ghost.e2e.E2EResponse
+import com.github.mitallast.ghost.e2e.E2EAuthRequest
+import com.github.mitallast.ghost.e2e.E2EAuthResponse
+import com.github.mitallast.ghost.e2e.E2EComplete
 import com.github.mitallast.ghost.ecdh.Auth
 import com.github.mitallast.ghost.ecdh.ECDHService
 import com.github.mitallast.ghost.session.SessionInactive
@@ -119,11 +120,13 @@ class WebSocketFrameHandler @Inject constructor(
                             val decrypted = ecdhService.decrypt(auth!!, message)
                             val decoded = Codec.anyCodec<CodecMessage>().read(decrypted)
                             when (decoded) {
-                                is E2ERequest -> updates.send(SendUpdate(decoded.to, decoded))
-                                is E2EResponse -> updates.send(SendUpdate(decoded.to, decoded))
+                                is E2EAuthRequest -> updates.send(SendUpdate(decoded.to, decoded))
+                                is E2EAuthResponse -> updates.send(SendUpdate(decoded.to, decoded))
                                 is E2EEncrypted -> updates.send(SendUpdate(decoded.to, decoded))
+                                is E2EComplete -> updates.send(SendUpdate(decoded.to, decoded))
                                 is UpdateInstalled -> updates.send(AuthUpdateInstalled(auth!!.auth, decoded.last))
                                 is UpdateRejected -> updates.send(AuthUpdateRejected(auth!!.auth, decoded.last))
+                                else -> logger.error("unexpected message", decoded)
                             }
                         } catch (e: Exception) {
                             logger.error(e)

@@ -2,7 +2,6 @@ package com.github.mitallast.ghost.client.profile
 
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.crypto.HEX
-import com.github.mitallast.ghost.client.e2e.E2EFlow
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.view.*
@@ -57,11 +56,6 @@ object ProfileController {
         SidebarSettingsController.show()
         ProfileController.showAddress()
     }
-
-    suspend fun newContact(auth: ByteArray) {
-        val profile = ProfileController.profile()
-        E2EFlow.send(auth, profile)
-    }
 }
 
 class NewProfileFormView(auth: ByteArray) : View {
@@ -77,24 +71,24 @@ class NewProfileFormView(auth: ByteArray) : View {
         attr("placeholder", "full name")
     }
     override val root = div {
-        attr("class", "form-container")
+        clazz("form-container")
         form {
             div {
-                attr("class", "form-input")
+                clazz("form-input")
                 append(nicknameInput)
             }
             div {
-                attr("class", "form-input")
+                clazz("form-input")
                 append(fullnameInput)
             }
             div {
-                attr("class", "form-hint")
+                clazz("form-hint")
                 text("Enter your public profile data")
             }
             div {
-                attr("class", "form-button")
+                clazz("form-button")
                 button {
-                    attr("class", "btn")
+                    clazz("btn")
                     type("submit")
                     text("OK")
                 }
@@ -118,16 +112,16 @@ class NewProfileFormView(auth: ByteArray) : View {
 
 class ProfileAddressView(auth: ByteArray) : View {
     override val root = div {
-        attr("class", "form-container")
+        clazz("form-container")
         div {
-            attr("class", "form-input")
+            clazz("form-input")
             input {
-                attr("disabled", "true")
+                disabled()
                 value(HEX.toHex(auth))
             }
         }
         div {
-            attr("class", "form-hint")
+            clazz("form-hint")
             text("This is your ghost address in messenger. Share it to your friends!")
         }
     }

@@ -11,7 +11,6 @@ abstract class Element(name: String, ns: String? = null) {
         window.document.createElementNS(ns, name)
     }
 
-
     fun attr(name: String, value: String) {
         element.setAttribute(name, value)
     }
@@ -21,6 +20,26 @@ abstract class Element(name: String, ns: String? = null) {
     }
     fun hide() {
         element.asDynamic().style.visibility = "hidden"
+    }
+
+    fun clazz(vararg classList: String) {
+        for(c in classList) {
+            element.asDynamic().classList.add(c)
+        }
+    }
+
+    fun removeClass(vararg classList: String) {
+        for(c in classList) {
+            element.asDynamic().classList.remove(c)
+        }
+    }
+
+    fun required() {
+        element.setAttribute("required", "required")
+    }
+
+    fun disabled() {
+        element.setAttribute("disabled", "disabled")
     }
 
     fun div(init: DIV.() -> Unit): DIV = initTag(DIV(), init)

@@ -13,14 +13,14 @@ object ApplicationController {
 
 object ApplicationView : View {
     override val root = div {
-        attr("class", "ghost")
+        clazz("ghost")
         div {
-            attr("class", "ghost-container")
+            clazz("ghost-container")
             append(SidebarView.root)
             div {
-                attr("class", "ghost-main")
+                clazz("ghost-main")
                 div {
-                    attr("class", "content-container")
+                    clazz("content-container")
                     append(ContentHeaderView.root)
                     append(ContentMainView.root)
                     append(ContentFooterView.root)

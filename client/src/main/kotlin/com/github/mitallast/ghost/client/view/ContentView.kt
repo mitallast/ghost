@@ -6,7 +6,7 @@ import com.github.mitallast.ghost.client.html.text
 object ContentHeaderView : View {
     private val titleText = text("Ghost messenger")
     override val root = div {
-        attr("class", "content-header")
+        clazz("content-header")
         h3 {
             append(titleText)
         }
@@ -35,7 +35,7 @@ object ContentMainController {
 
 object ContentMainView : View {
     override val root = div {
-        attr("class", "content-main")
+        clazz("content-main")
     }
 
     fun remove(view: View) {
@@ -65,7 +65,7 @@ object ContentFooterController {
 
 object ContentFooterView : View {
     override val root = div {
-        attr("class", "content-footer")
+        clazz("content-footer")
     }
 
     fun remove(view: View) {

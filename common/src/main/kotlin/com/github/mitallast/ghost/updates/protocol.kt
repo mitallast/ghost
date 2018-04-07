@@ -56,3 +56,7 @@ class UpdateRejected(val last: Long) : CodecMessage {
         )
     }
 }
+
+// @todo send update command
+// @todo send update command ack
+// @todo persistent send update on client

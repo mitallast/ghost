@@ -45,11 +45,11 @@ object SidebarDialogsController {
 
 object SidebarDialogsView : View {
     private val list = div {
-        attr("class", "sidebar-list-scroll")
+        clazz("sidebar-list-scroll")
     }
 
     override val root = div {
-        attr("class", "sidebar-list")
+        clazz("sidebar-list")
         append(list)
     }
 
@@ -82,25 +82,25 @@ class SidebarDialogView(profile: UserProfile) {
     }
 
     val root = div {
-        attr("class", "dialog-container")
+        clazz("dialog-container")
         div {
-            attr("class", "dialog")
+            clazz("dialog")
             div {
-                attr("class", "avatar-container")
+                clazz("avatar-container")
                 div {
-                    attr("class", "avatar-placeholder")
+                    clazz("avatar-placeholder")
                     append(letterText)
                 }
             }
             div {
-                attr("class", "dialog-main")
+                clazz("dialog-main")
                 div {
-                    attr("class", "dialog-header")
+                    clazz("dialog-header")
                     span { append(dateText) }
                     h4 { append(fullnameText) }
                 }
                 div {
-                    attr("class", "dialog-message")
+                    clazz("dialog-message")
                     append(messageText)
                 }
             }

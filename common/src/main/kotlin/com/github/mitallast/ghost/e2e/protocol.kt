@@ -3,7 +3,7 @@ package com.github.mitallast.ghost.e2e
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 
-class E2ERequest(
+class E2EAuthRequest(
     val from: ByteArray,
     val to: ByteArray,
     val ecdhPublicKey: ByteArray,
@@ -16,12 +16,12 @@ class E2ERequest(
     companion object {
         const val messageId = 0x0200
         val codec = Codec.of(
-            ::E2ERequest,
-            E2ERequest::from,
-            E2ERequest::to,
-            E2ERequest::ecdhPublicKey,
-            E2ERequest::ecdsaPublicKey,
-            E2ERequest::sign,
+            ::E2EAuthRequest,
+            E2EAuthRequest::from,
+            E2EAuthRequest::to,
+            E2EAuthRequest::ecdhPublicKey,
+            E2EAuthRequest::ecdsaPublicKey,
+            E2EAuthRequest::sign,
             Codec.bytesCodec(),
             Codec.bytesCodec(),
             Codec.bytesCodec(),
@@ -31,7 +31,7 @@ class E2ERequest(
     }
 }
 
-class E2EResponse(
+class E2EAuthResponse(
     val from: ByteArray,
     val to: ByteArray,
     val ecdhPublicKey: ByteArray,
@@ -44,12 +44,12 @@ class E2EResponse(
     companion object {
         const val messageId = 0x0201
         val codec = Codec.of(
-            ::E2EResponse,
-            E2EResponse::from,
-            E2EResponse::to,
-            E2EResponse::ecdhPublicKey,
-            E2EResponse::ecdsaPublicKey,
-            E2EResponse::sign,
+            ::E2EAuthResponse,
+            E2EAuthResponse::from,
+            E2EAuthResponse::to,
+            E2EAuthResponse::ecdhPublicKey,
+            E2EAuthResponse::ecdsaPublicKey,
+            E2EAuthResponse::sign,
             Codec.bytesCodec(),
             Codec.bytesCodec(),
             Codec.bytesCodec(),
@@ -85,4 +85,51 @@ class E2EEncrypted(
             Codec.bytesCodec()
         )
     }
+
+    fun toComplete(): E2EComplete = E2EComplete(
+            from,
+            to,
+            sign,
+            iv,
+            encrypted
+    )
 }
+
+class E2EComplete(
+        val from: ByteArray,
+        val to: ByteArray,
+        val sign: ByteArray,
+        val iv: ByteArray,
+        val encrypted: ByteArray
+) : CodecMessage {
+
+    override fun messageId(): Int = messageId
+
+    companion object {
+        const val messageId = 0x0203
+        val codec = Codec.of(
+                ::E2EComplete,
+                E2EComplete::from,
+                E2EComplete::to,
+                E2EComplete::sign,
+                E2EComplete::iv,
+                E2EComplete::encrypted,
+                Codec.bytesCodec(),
+                Codec.bytesCodec(),
+                Codec.bytesCodec(),
+                Codec.bytesCodec(),
+                Codec.bytesCodec()
+        )
+    }
+
+    fun toEncrypted(): E2EEncrypted = E2EEncrypted(
+        from,
+        to,
+        sign,
+        iv,
+        encrypted
+    )
+}
+
+// @todo add validation data for auth response
+// @todo request canceled

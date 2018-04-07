@@ -25,8 +25,9 @@ object Registry {
         Codec.register(ECDHEncrypted.messageId, ECDHEncrypted.codec)
         Codec.register(ECDHReconnect.messageId, ECDHReconnect.codec)
 
-        Codec.register(E2ERequest.messageId, E2ERequest.codec)
-        Codec.register(E2EResponse.messageId, E2EResponse.codec)
+        Codec.register(E2EAuthRequest.messageId, E2EAuthRequest.codec)
+        Codec.register(E2EAuthResponse.messageId, E2EAuthResponse.codec)
+        Codec.register(E2EComplete.messageId, E2EComplete.codec)
         Codec.register(E2EEncrypted.messageId, E2EEncrypted.codec)
 
         Codec.register(Update.messageId, Update.codec)

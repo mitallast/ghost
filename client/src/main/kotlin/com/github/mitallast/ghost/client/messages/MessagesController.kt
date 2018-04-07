@@ -4,7 +4,7 @@ import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.crypto.crypto
-import com.github.mitallast.ghost.client.e2e.E2EFlow
+import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.profile.SidebarDialogsController
@@ -86,7 +86,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
         )
         MessagesStore.put(profile.id, message)
         show(message)
-        E2EFlow.send(profile.id, message)
+        E2EController.send(profile.id, message)
     }
 
     suspend fun handle(message: Message) {
@@ -111,10 +111,10 @@ class MessagesListController(private val self: UserProfile, private val profile:
 
 class MessagesListView : View {
     private val list = div {
-        attr("class", "messages-scroll")
+        clazz("messages-scroll")
     }
     override val root = div {
-        attr("class", "messages-list")
+        clazz("messages-list")
         append(list)
     }
 
@@ -126,20 +126,20 @@ class MessagesListView : View {
 class MessageView(message: Message, own: Boolean) : View {
     override val root = div {
         if (own) {
-            attr("class", "message-container message-own")
+            clazz("message-container", "message-own")
         } else {
-            attr("class", "message-container")
+            clazz("message-container")
         }
         val content = message.content
         when (content) {
             is TextMessage -> div {
-                attr("class", "message")
+                clazz("message")
                 div {
-                    attr("class", "message-text")
+                    clazz("message-text")
                     text(content.text)
                 }
                 div {
-                    attr("class", "message-time")
+                    clazz("message-time")
                     text(timeFormat(message.date))
                 }
             }
@@ -156,7 +156,7 @@ class MessageView(message: Message, own: Boolean) : View {
 
 class MessageEditorView(private val controller: MessagesListController) : View {
     override val root = div {
-        attr("class", "message-editor")
+        clazz("message-editor")
         textarea {
             on("keypress", { event ->
                 val key: Int = event.asDynamic().keyCode;

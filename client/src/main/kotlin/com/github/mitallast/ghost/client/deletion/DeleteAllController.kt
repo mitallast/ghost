@@ -2,6 +2,9 @@ package com.github.mitallast.ghost.client.deletion
 
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.e2e.E2EAuthStore
+import com.github.mitallast.ghost.client.e2e.E2EIncomingRequestStore
+import com.github.mitallast.ghost.client.e2e.E2EOutgoingRequestStore
+import com.github.mitallast.ghost.client.e2e.E2EResponseStore
 import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.messages.MessagesStore
@@ -23,6 +26,9 @@ object DeleteAllController {
     fun deleteAll() {
         launch {
             E2EAuthStore.cleanup()
+            E2EOutgoingRequestStore.cleanup()
+            E2EIncomingRequestStore.cleanup()
+            E2EResponseStore.cleanup()
             ECDHAuthStore.cleanup()
             MessagesStore.cleanup()
             ProfileStore.cleanup()
@@ -34,16 +40,16 @@ object DeleteAllController {
 
 object DeleteAllView : View {
     override val root = com.github.mitallast.ghost.client.html.div {
-        attr("class", "form-container")
+        clazz("form-container")
         form {
             div {
-                attr("class", "form-hint")
+                clazz("form-hint")
                 text("All your data will be removed!")
             }
             div {
-                attr("class", "form-button")
+                clazz("form-button")
                 button {
-                    attr("class", "btn")
+                    clazz("btn")
                     type("submit")
                     text("REMOVE")
                 }
@@ -58,13 +64,13 @@ object DeleteAllView : View {
 
 object SidebarDeleteAllMenuItem : View {
     override val root = div {
-        attr("class", "sidebar-menu-item")
+        clazz("sidebar-menu-item")
         span {
-            attr("class", "sidebar-menu-text")
+            clazz("sidebar-menu-text")
             text("Delete profile")
         }
         span {
-            attr("class", "sidebar-menu-icon")
+            clazz("sidebar-menu-icon")
             svg {
                 attr("viewBox", "0 0 8 13")
                 polygon {
