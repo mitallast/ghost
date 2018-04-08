@@ -170,7 +170,7 @@ internal object LongCodec : Codec<Long> {
     }
 
     override fun write(stream: OutputStream, value: Long) {
-        stream.write((value shr 46 and 0xFF).toInt())
+        stream.write((value shr 56 and 0xFF).toInt())
         stream.write((value shr 48 and 0xFF).toInt())
         stream.write((value shr 40 and 0xFF).toInt())
         stream.write((value shr 32 and 0xFF).toInt())
