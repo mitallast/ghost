@@ -15,25 +15,37 @@ external interface IDBException {
 fun <T> IDBRequest<T>.promise(): Promise<T> {
     return Promise({ resolve, reject ->
         onsuccess = { resolve.invoke(result) }
-        onerror = { reject.invoke(Exception(it.toString())) }
+        onerror = {
+            console.error("error idb request", it.target.error)
+            reject.invoke(Exception(it.toString()))
+        }
     })
 }
 
 suspend fun <T> IDBRequest<T>.await(): T = suspendCoroutine { cont ->
     onsuccess = { cont.resume(result) }
-    onerror = { cont.resumeWithException(Exception(it.toString())) }
+    onerror = {
+        console.error("error idb request", it.target.error)
+        cont.resumeWithException(Exception(it.toString()))
+    }
 }
 
 fun IDBTransaction.promise(): Promise<Unit> {
     return Promise({ resolve, reject ->
         oncomplete = { resolve.invoke(Unit) }
-        onerror = { reject.invoke(Exception(it.toString())) }
+        onerror = {
+            console.error("error idb transaction", it.target.error)
+            reject.invoke(Exception(it.toString()))
+        }
     })
 }
 
 suspend fun IDBTransaction.await(): Unit = suspendCoroutine { cont ->
     oncomplete = { cont.resume(Unit) }
-    onerror = { cont.resumeWithException(Exception(it.toString())) }
+    onerror = {
+        console.error("error idb transaction", it.target.error)
+        cont.resumeWithException(Exception(it.toString()))
+    }
 }
 
 external interface IDBRequest<out T> {

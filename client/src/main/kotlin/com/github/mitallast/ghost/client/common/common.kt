@@ -18,7 +18,9 @@ fun launch(block: suspend () -> Unit) {
         override val context: CoroutineContext get() = EmptyCoroutineContext
         override fun resume(value: Unit) {}
         override fun resumeWithException(exception: Throwable) {
-            console.error("coroutine failed", exception)
+            console.error("coroutine failed: ${exception.message}")
+            console.error(exception.asDynamic().stack)
+            console.error(exception)
         }
     })
 }
