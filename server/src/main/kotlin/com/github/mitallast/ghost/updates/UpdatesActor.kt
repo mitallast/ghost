@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.bouncycastle.util.encoders.Hex
 
 class ForceUpdate(val auth: ByteArray)
-class SendUpdate(val auth: ByteArray, val update: CodecMessage)
+class AuthSendUpdate(val from: ByteArray, val to: ByteArray, val randomId: Long, val update: CodecMessage)
 class AuthUpdateInstalled(val auth: ByteArray, val last: Long)
 class AuthUpdateRejected(val auth: ByteArray, val last: Long)
 
@@ -24,14 +24,14 @@ class UpdatesActor @Inject constructor(
 
     override fun handle(message: Any, sender: ActorRef) {
         when (message) {
-            is SendUpdate -> {
-                logger.info("received send update auth={}", Hex.toHexString(message.auth))
-                val sequence = updatesStore.append(message.auth, message.update)
-                val update = Update(sequence, message.update)
-                val last = updatesStore.lastInstalled(message.auth)
-                logger.info("installed=$last sequence=$sequence auth={}", Hex.toHexString(message.auth))
-                if (last + 1 == sequence) {
-                    session.send(SessionSend(message.auth, update))
+            is AuthSendUpdate -> {
+                logger.info("received send update auth={} rid={}", Hex.toHexString(message.to), message.randomId)
+                val update = updatesStore.append(message.from, message.to, message.update)
+                session.send(SessionSend(message.from, SendAck(message.randomId)))
+                val last = updatesStore.lastInstalled(message.to)
+                logger.info("installed=$last sequence=${update.sequence} auth={}", Hex.toHexString(message.to))
+                if (last + 1 == update.sequence) {
+                    session.send(SessionSend(message.to, update))
                 }
             }
             is ForceUpdate -> {

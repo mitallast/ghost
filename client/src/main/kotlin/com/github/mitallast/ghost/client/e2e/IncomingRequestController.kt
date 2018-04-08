@@ -2,10 +2,10 @@ package com.github.mitallast.ghost.client.e2e
 
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.crypto.HEX
-import com.github.mitallast.ghost.client.ecdh.ECDHController
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
+import com.github.mitallast.ghost.client.updates.UpdatesController
 import com.github.mitallast.ghost.client.view.ContentFooterController
 import com.github.mitallast.ghost.client.view.ContentHeaderView
 import com.github.mitallast.ghost.client.view.ContentMainController
@@ -33,7 +33,7 @@ object IncomingRequestController {
 
     suspend fun answer(address: ByteArray, password: String) {
         val response = E2EDHFlow.answerRequest(address, password)
-        ECDHController.send(response)
+        UpdatesController.send(address, response)
 
         val view = IncomingRequestAnsweredView(address)
 

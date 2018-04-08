@@ -4,12 +4,13 @@ import com.github.mitallast.ghost.client.common.await
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.profile.ProfileController
-import com.github.mitallast.ghost.client.updates.UpdatesFlow
+import com.github.mitallast.ghost.client.updates.UpdatesController
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.ecdh.ECDHEncrypted
 import com.github.mitallast.ghost.ecdh.ECDHResponse
 import com.github.mitallast.ghost.updates.InstallUpdate
+import com.github.mitallast.ghost.updates.SendAck
 import com.github.mitallast.ghost.updates.Update
 import kotlin.browser.window
 import kotlin.js.Promise
@@ -25,8 +26,6 @@ object ECDHController {
         connectPromise = connect()
         if (auth != null) {
             ProfileController.start(auth!!.auth)
-        } else {
-            cleanup()
         }
     }
 
@@ -63,8 +62,9 @@ object ECDHController {
 
     private suspend fun handle(message: CodecMessage) {
         when (message) {
-            is Update -> UpdatesFlow.handle(message)
-            is InstallUpdate -> UpdatesFlow.handle(message)
+            is Update -> UpdatesController.handle(message)
+            is InstallUpdate -> UpdatesController.handle(message)
+            is SendAck -> UpdatesController.handle(message)
             else -> console.warn("unexpected", message)
         }
     }
@@ -72,19 +72,13 @@ object ECDHController {
     fun auth(): ByteArray = auth!!.auth
 
     suspend fun send(message: CodecMessage) {
-        console.log("send message", message)
+        // @todo rewrite promise
+        console.log("[ecdh] send message", message)
         val encoded = Codec.anyCodec<CodecMessage>().write(message)
         val encrypted = ECDHCipher.encrypt(auth!!, toArrayBuffer(encoded))
         val connect = connection()
-        console.log("send message to connection")
+        console.log("[ecdh] send message to connection")
         connect.send(encrypted)
-    }
-
-    private suspend fun cleanup() {
-//        E2EAuthStore.cleanup()
-//        ECDHAuthStore.cleanup()
-//        UpdatesStore.cleanup()
-//        ProfileStore.cleanup()
     }
 
     private class StartListener(private val resolve: (IConnection) -> Unit) : ConnectionListener {
@@ -139,6 +133,7 @@ object ECDHController {
             val request = ECDHFlow.reconnect(auth)
             connection.send(request)
             resolve.invoke(connection)
+            UpdatesController.maybeSend()
         }
 
         override suspend fun disconnected(connection: IConnection) {
@@ -148,10 +143,6 @@ object ECDHController {
 
         override suspend fun handle(message: CodecMessage) {
             when (message) {
-                is ECDHResponse -> {
-                    console.error("unexpected ecdh request message")
-                    connect!!.close()
-                }
                 is ECDHEncrypted -> {
                     val decrypted = ECDHCipher.decrypt(auth, message)
                     val decoded = Codec.anyCodec<CodecMessage>().read(toByteArray(decrypted))

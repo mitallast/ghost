@@ -34,6 +34,8 @@ object Registry {
         Codec.register(InstallUpdate.messageId, InstallUpdate.codec)
         Codec.register(UpdateInstalled.messageId, UpdateInstalled.codec)
         Codec.register(UpdateRejected.messageId, UpdateRejected.codec)
+        Codec.register(SendUpdate.messageId, SendUpdate.codec)
+        Codec.register(SendAck.messageId, SendAck.codec)
 
         Codec.register(UserProfile.messageId, UserProfile.codec)
 

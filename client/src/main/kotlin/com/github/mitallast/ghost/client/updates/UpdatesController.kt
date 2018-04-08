@@ -3,16 +3,13 @@ package com.github.mitallast.ghost.client.updates
 import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.ecdh.ECDHController
 import com.github.mitallast.ghost.common.codec.CodecMessage
-import com.github.mitallast.ghost.e2e.E2EEncrypted
 import com.github.mitallast.ghost.e2e.E2EAuthRequest
 import com.github.mitallast.ghost.e2e.E2EAuthResponse
 import com.github.mitallast.ghost.e2e.E2EComplete
-import com.github.mitallast.ghost.updates.InstallUpdate
-import com.github.mitallast.ghost.updates.Update
-import com.github.mitallast.ghost.updates.UpdateInstalled
-import com.github.mitallast.ghost.updates.UpdateRejected
+import com.github.mitallast.ghost.e2e.E2EEncrypted
+import com.github.mitallast.ghost.updates.*
 
-object UpdatesFlow {
+object UpdatesController {
     suspend fun handle(message: CodecMessage) {
         when (message) {
             is Update -> {
@@ -40,14 +37,25 @@ object UpdatesFlow {
                 }
                 UpdatesStore.updateLastInstalled(lastInstalled)
                 if (error) {
-                    console.info("send update rejected", lastInstalled)
+                    console.info("send update rejected $lastInstalled")
                     ECDHController.send(UpdateRejected(lastInstalled))
                 } else {
-                    console.info("send update installed", lastInstalled)
+                    console.info("send update installed $lastInstalled")
                     ECDHController.send(UpdateInstalled(lastInstalled))
                 }
             }
+            is SendAck -> {
+                console.log("send ack received ${message.randomId}")
+                UpdatesStore.complete(message.randomId)
+                maybeSend()
+            }
         }
+    }
+
+    suspend fun send(address: ByteArray, message: CodecMessage) {
+        val send = UpdatesStore.queue(address, message)
+        console.log("send update ${send.randomId}")
+        ECDHController.send(send)
     }
 
     private suspend fun installUpdate(update: CodecMessage) {
@@ -58,6 +66,14 @@ object UpdatesFlow {
             is E2EEncrypted -> E2EController.handle(update)
             is E2EComplete -> E2EController.handle(update)
             else -> console.error("unexpected message", update)
+        }
+    }
+
+    suspend fun maybeSend() {
+        val send = UpdatesStore.peek()
+        if (send != null) {
+            console.log("resend update ${send.randomId}")
+            ECDHController.send(send)
         }
     }
 }

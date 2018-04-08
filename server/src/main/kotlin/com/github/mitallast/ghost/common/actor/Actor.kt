@@ -11,6 +11,10 @@ abstract class Actor(private val system: ActorSystem) : Provider<ActorRef> {
     override fun get(): ActorRef = self
     abstract fun handle(message: Any, sender: ActorRef)
     open fun handle(message: Throwable, sender: ActorRef) {}
+
+    override fun toString(): String {
+        return this.javaClass.simpleName
+    }
 }
 
 interface ActorRef {
@@ -53,6 +57,10 @@ internal class DefaultActorRef(
     override fun forward(message: Any, sender: ActorRef) {
         return actorSystem.send(actor, message, sender)
     }
+
+    override fun toString(): String {
+        return "[ref $actor]"
+    }
 }
 
 internal class PromiseActorRef(private val promise: Promise<Any>) : ActorRef {
@@ -80,6 +88,9 @@ internal class PromiseActorRef(private val promise: Promise<Any>) : ActorRef {
         throw IllegalAccessException()
     }
 
+    override fun toString(): String {
+        return "[ref promise]"
+    }
 }
 
 internal object NoopActorRef : ActorRef {
@@ -105,6 +116,10 @@ internal object NoopActorRef : ActorRef {
 
     override fun forward(message: Any, sender: ActorRef) {
         throw IllegalAccessError()
+    }
+
+    override fun toString(): String {
+        return "[ref noop]"
     }
 }
 

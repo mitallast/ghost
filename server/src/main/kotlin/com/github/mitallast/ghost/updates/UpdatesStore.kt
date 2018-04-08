@@ -22,13 +22,15 @@ class UpdatesStore @Inject constructor(private val db: PersistentService) {
         })
     }
 
-    fun append(auth: ByteArray, update: CodecMessage): Long {
-        val current = currentSequence(auth)
+    fun append(from: ByteArray, to: ByteArray, message: CodecMessage): Update {
+        val current = currentSequence(to)
         val next = current + 1
+        val update = Update(next, from, message)
+        val data = Update.codec.write(update)
         val nextBuffer = Codec.longCodec().write(next)
-        db.put(sequenceCF, auth, nextBuffer)
-        db.put(logCF(auth), nextBuffer, Codec.anyCodec<CodecMessage>().write(update))
-        return next
+        db.put(sequenceCF, to, nextBuffer)
+        db.put(logCF(to), nextBuffer, data)
+        return update
     }
 
     fun lastInstalled(auth: ByteArray): Long {
@@ -63,8 +65,7 @@ class UpdatesStore @Inject constructor(private val db: PersistentService) {
             val current = Codec.longCodec().read(currentBuffer)
             logger.info("i=$current")
             if (current > last) {
-                val message = Codec.anyCodec<CodecMessage>().read(iterator.value())
-                val update = Update(current, message)
+                val update = Update.codec.read(iterator.value())
                 updates.add(update)
             }
             iterator.next()

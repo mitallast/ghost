@@ -6,6 +6,7 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.ecdh.ECDHController
 import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.profile.ProfileController
+import com.github.mitallast.ghost.client.updates.UpdatesController
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EEncrypted
@@ -24,7 +25,7 @@ object E2EController {
         console.log("encrypt e2e")
         val encrypted = E2EDHFlow.encrypt(auth, to, toArrayBuffer(encoded))
         console.log("send e2e encrypted", encrypted)
-        ECDHController.send(encrypted)
+        UpdatesController.send(to, encrypted)
     }
 
     suspend fun complete(to: ByteArray) {
@@ -35,7 +36,7 @@ object E2EController {
         console.log("encrypt e2e")
         val encrypted = E2EDHFlow.encrypt(auth, to, toArrayBuffer(encoded))
         console.log("send e2e complete", encrypted)
-        ECDHController.send(encrypted.toComplete())
+        UpdatesController.send(to, encrypted.toComplete())
     }
 
     suspend fun handle(update: CodecMessage) {

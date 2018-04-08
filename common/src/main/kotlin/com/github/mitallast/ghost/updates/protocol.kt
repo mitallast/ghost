@@ -3,7 +3,11 @@ package com.github.mitallast.ghost.updates
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 
-class Update(val sequence: Long, val update: CodecMessage) : CodecMessage {
+class Update(
+    val sequence: Long,
+    val from: ByteArray,
+    val update: CodecMessage
+) : CodecMessage {
     override fun messageId(): Int = messageId
 
     companion object {
@@ -11,8 +15,10 @@ class Update(val sequence: Long, val update: CodecMessage) : CodecMessage {
         val codec = Codec.of(
             ::Update,
             Update::sequence,
+            Update::from,
             Update::update,
             Codec.longCodec(),
+            Codec.bytesCodec(),
             Codec.anyCodec()
         )
     }
@@ -57,6 +63,36 @@ class UpdateRejected(val last: Long) : CodecMessage {
     }
 }
 
-// @todo send update command
-// @todo send update command ack
-// @todo persistent send update on client
+class SendUpdate(
+    val randomId: Long,
+    val address: ByteArray,
+    val message: CodecMessage
+) : CodecMessage {
+    override fun messageId(): Int = messageId
+
+    companion object {
+        const val messageId = 0x0304
+        val codec = Codec.of(
+            ::SendUpdate,
+            SendUpdate::randomId,
+            SendUpdate::address,
+            SendUpdate::message,
+            Codec.longCodec(),
+            Codec.bytesCodec(),
+            Codec.anyCodec()
+        )
+    }
+}
+
+class SendAck(val randomId: Long) : CodecMessage {
+    override fun messageId(): Int = messageId
+
+    companion object {
+        const val messageId = 0x0305
+        val codec = Codec.of(
+            ::SendAck,
+            SendAck::randomId,
+            Codec.longCodec()
+        )
+    }
+}

@@ -1,19 +1,11 @@
 package com.github.mitallast.ghost.rest.netty
 
-import com.github.mitallast.ghost.ecdh.ECDHEncrypted
-import com.github.mitallast.ghost.ecdh.ECDHReconnect
-import com.github.mitallast.ghost.ecdh.ECDHRequest
 import com.github.mitallast.ghost.common.actor.Actor
 import com.github.mitallast.ghost.common.actor.ActorRef
 import com.github.mitallast.ghost.common.actor.ActorSystem
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
-import com.github.mitallast.ghost.e2e.E2EEncrypted
-import com.github.mitallast.ghost.e2e.E2EAuthRequest
-import com.github.mitallast.ghost.e2e.E2EAuthResponse
-import com.github.mitallast.ghost.e2e.E2EComplete
-import com.github.mitallast.ghost.ecdh.Auth
-import com.github.mitallast.ghost.ecdh.ECDHService
+import com.github.mitallast.ghost.ecdh.*
 import com.github.mitallast.ghost.session.SessionInactive
 import com.github.mitallast.ghost.session.SessionRegistered
 import com.github.mitallast.ghost.updates.*
@@ -35,10 +27,10 @@ object CloseChannel
 
 @ChannelHandler.Sharable
 class WebSocketFrameHandler @Inject constructor(
-    private val system: ActorSystem,
-    private val ecdhService: ECDHService,
-    @Named("session") private val session: ActorRef,
-    @Named("updates") private val updates: ActorRef
+        private val system: ActorSystem,
+        private val ecdhService: ECDHService,
+        @Named("session") private val session: ActorRef,
+        @Named("updates") private val updates: ActorRef
 ) : SimpleChannelInboundHandler<BinaryWebSocketFrame>() {
 
     private val logger = LogManager.getLogger()
@@ -120,10 +112,7 @@ class WebSocketFrameHandler @Inject constructor(
                             val decrypted = ecdhService.decrypt(auth!!, message)
                             val decoded = Codec.anyCodec<CodecMessage>().read(decrypted)
                             when (decoded) {
-                                is E2EAuthRequest -> updates.send(SendUpdate(decoded.to, decoded))
-                                is E2EAuthResponse -> updates.send(SendUpdate(decoded.to, decoded))
-                                is E2EEncrypted -> updates.send(SendUpdate(decoded.to, decoded))
-                                is E2EComplete -> updates.send(SendUpdate(decoded.to, decoded))
+                                is SendUpdate -> updates.send(AuthSendUpdate(auth!!.auth, decoded.address, decoded.randomId, decoded.message))
                                 is UpdateInstalled -> updates.send(AuthUpdateInstalled(auth!!.auth, decoded.last))
                                 is UpdateRejected -> updates.send(AuthUpdateRejected(auth!!.auth, decoded.last))
                                 else -> logger.error("unexpected message", decoded)
