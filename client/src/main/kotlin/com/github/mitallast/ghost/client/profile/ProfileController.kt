@@ -116,7 +116,7 @@ class ProfileAddressView(auth: ByteArray) : View {
         div {
             clazz("form-input")
             input {
-                disabled()
+                readonly()
                 value(HEX.toHex(auth))
             }
         }

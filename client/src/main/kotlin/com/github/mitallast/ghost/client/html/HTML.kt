@@ -42,6 +42,10 @@ abstract class Element(name: String, ns: String? = null) {
         element.setAttribute("disabled", "disabled")
     }
 
+    fun readonly() {
+        element.setAttribute("readonly", "readonly")
+    }
+
     fun div(init: DIV.() -> Unit): DIV = initTag(DIV(), init)
     fun a(init: A.() -> Unit): A = initTag(A(), init)
     fun h2(init: H2.() -> Unit): H2 = initTag(H2(), init)
