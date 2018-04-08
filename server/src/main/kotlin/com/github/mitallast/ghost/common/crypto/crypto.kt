@@ -207,7 +207,7 @@ object ECDH {
 object AES {
     fun iv(): ByteArray {
         val iv = ByteArray(ECDHParams.AES_GCM_IV_LENGTH)
-        SecureRandom.getInstanceStrong().nextBytes(iv)
+        SecureRandom.getInstance("NativePRNG").nextBytes(iv)
         return iv
     }
 
