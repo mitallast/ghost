@@ -47,6 +47,7 @@ object MessagesStore {
             Pair("rid", Codec.longCodec().write(message.randomId)),
             Pair("message", Message.codec.write(message))
         ))
+        tx.await()
     }
 
     suspend fun lastMessage(dialog: ByteArray): Message? {
@@ -61,7 +62,6 @@ object MessagesStore {
         )
         val request = store.openCursor(bound, "prev")
         val cursor = request.await()
-        tx.await()
         return if (cursor == null) {
             null
         } else {
@@ -72,7 +72,6 @@ object MessagesStore {
 
     suspend fun historyTop(dialog: ByteArray, limit: Int): ArrayList<Message> {
         console.log("load historyTop", HEX.toHex(dialog), limit)
-        val messages = ArrayList<Message>()
         val tx = db.await().transaction("messages", "readonly")
         val store = tx.objectStore("messages")
         val bound = IDBKeyRange.bound(
@@ -81,20 +80,29 @@ object MessagesStore {
             false,
             false
         )
-        val request = store.openCursor(bound, "prev")
-        while (messages.size < limit) {
-            val cursor = request.await()
-            if (cursor == null) {
-                break
-            } else {
-                val data = cursor.value.message as ByteArray
-                val message = Message.codec.read(data)
-                messages.add(message)
-                cursor.`continue`()
+        val promise = Promise<ArrayList<Message>>({ resolve, reject ->
+            val messages = ArrayList<Message>()
+            val request = store.openCursor(bound, "prev")
+            request.onsuccess = {
+                val cursor = request.result
+                if (cursor == null) {
+                    resolve.invoke(messages)
+                } else {
+                    val data = cursor.value.message as ByteArray
+                    val message = Message.codec.read(data)
+                    messages.add(message)
+                    if (messages.size < limit) {
+                        cursor.`continue`()
+                    } else {
+                        resolve.invoke(messages)
+                    }
+                }
             }
-        }
-        tx.await()
-        console.log("total messages", messages.size)
-        return messages;
+            request.onerror = {
+                reject.invoke(it.target.error as Throwable)
+            }
+        })
+
+        return promise.await()
     }
 }
