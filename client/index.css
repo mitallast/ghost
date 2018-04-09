@@ -73,6 +73,7 @@ ul, li, p, h1, h2, h3, h4 {
 .sidebar-list {
     flex: 1 1 0%;
     display: flex;
+    min-height: 0;
 }
 
 .sidebar-list-scroll {
@@ -299,6 +300,7 @@ ul, li, p, h1, h2, h3, h4 {
 .ghost-main {
     flex: 1 1 0%;
     display: flex;
+    flex-direction: column;
 }
 
 .content-container {
@@ -405,7 +407,7 @@ ul, li, p, h1, h2, h3, h4 {
 .messages-list {
     flex: 1 1 0%;
     display: flex;
-    flex-direction: column-reverse;
+    flex-direction: column;
     overflow-y: auto;
     background-color: #f2f2f2;
 }

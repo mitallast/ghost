@@ -5,6 +5,7 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.text
 import com.github.mitallast.ghost.client.messages.MessagesController
+import com.github.mitallast.ghost.client.view.ScrollView
 import com.github.mitallast.ghost.client.view.SidebarController
 import com.github.mitallast.ghost.client.view.View
 import com.github.mitallast.ghost.message.Message
@@ -18,7 +19,7 @@ object SidebarDialogsController {
 
     fun show() {
         console.log("show dialogs")
-        SidebarController.view(SidebarDialogsView)
+        SidebarController.view(ScrollView(SidebarDialogsView))
     }
 
     suspend fun update(profile: UserProfile) {
@@ -44,17 +45,12 @@ object SidebarDialogsController {
 }
 
 object SidebarDialogsView : View {
-    private val list = div {
-        clazz("sidebar-list-scroll")
-    }
-
     override val root = div {
-        clazz("sidebar-list")
-        append(list)
+        clazz("dialogs")
     }
 
     fun add(view: SidebarDialogView) {
-        list.append(view.root)
+        root.append(view.root)
     }
 }
 
@@ -71,7 +67,7 @@ class SidebarDialogView(profile: UserProfile) {
     }
 
     fun update(message: Message) {
-        console.log("last ${timeFormat(message.date)}:${message.randomId}")
+//        console.log("last ${timeFormat(message.date)}:${message.randomId}")
         dateText.text(timeFormat(message.date))
         val content = message.content
         when (content) {

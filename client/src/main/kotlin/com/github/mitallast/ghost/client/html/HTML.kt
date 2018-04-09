@@ -1,15 +1,35 @@
 package com.github.mitallast.ghost.client.html
 
+import org.w3c.dom.Element
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
 import kotlin.browser.window
+import kotlin.js.json
 
-abstract class Element(name: String, ns: String? = null) {
-    protected val element = if (ns == null) {
+abstract class HTMLElement(name: String, ns: String? = null) {
+    val element = if (ns == null) {
         window.document.createElement(name)
     } else {
         window.document.createElementNS(ns, name)
     }
+
+    val offsetWidth: Int get() = element.asDynamic().offsetWidth as Int
+    val offsetHeight: Int get() = element.asDynamic().offsetHeight as Int
+    val scrollWidth: Int get() = element.scrollWidth
+    val scrollHeight: Int get() = element.scrollHeight
+
+    var scrollTop: Double
+        get() = element.scrollTop
+        set(value) {
+            element.scrollTop = value
+        }
+    var scrollLeft: Double
+        get() = element.scrollLeft
+        set(value) {
+            element.scrollLeft = value
+        }
+
+    val style: dynamic get() = element.asDynamic().style
 
     fun attr(name: String, value: String) {
         element.setAttribute(name, value)
@@ -18,18 +38,19 @@ abstract class Element(name: String, ns: String? = null) {
     fun show() {
         element.asDynamic().style.visibility = "visible"
     }
+
     fun hide() {
         element.asDynamic().style.visibility = "hidden"
     }
 
     fun clazz(vararg classList: String) {
-        for(c in classList) {
+        for (c in classList) {
             element.asDynamic().classList.add(c)
         }
     }
 
     fun removeClass(vararg classList: String) {
-        for(c in classList) {
+        for (c in classList) {
             element.asDynamic().classList.remove(c)
         }
     }
@@ -63,7 +84,7 @@ abstract class Element(name: String, ns: String? = null) {
         element.appendChild(node)
     }
 
-    fun append(node: Element) {
+    fun append(node: HTMLElement) {
         element.appendChild(node.element)
     }
 
@@ -75,17 +96,23 @@ abstract class Element(name: String, ns: String? = null) {
         window.document.body?.appendChild(element)
     }
 
-    fun on(name: String, listener: (e: Event) -> Unit) {
+    fun on(name: String, listener: (e: dynamic) -> Unit) {
         element.addEventListener(name, listener)
     }
 
-    fun onclick(listener: (e: Event) -> Unit) = on("click", listener)
+    fun onclick(listener: (e: dynamic) -> Unit) {
+        element.addEventListener("click", listener)
+    }
+
+    fun onwheel(listener: (e: dynamic) -> Unit) {
+        element.addEventListener("wheel", listener, json(Pair("passive", false)))
+    }
 
     fun remove() {
         element.remove()
     }
 
-    fun remove(child: Element) {
+    fun remove(child: HTMLElement) {
         element.removeChild(child.element)
     }
 
@@ -96,14 +123,14 @@ abstract class Element(name: String, ns: String? = null) {
         }
     }
 
-    protected fun <T : Element> initTag(tag: T, init: T.() -> Unit): T {
+    protected fun <T : HTMLElement> initTag(tag: T, init: T.() -> Unit): T {
         tag.init()
         element.appendChild(tag.element)
         return tag
     }
 }
 
-abstract class SVGElement(name: String) : Element(name, "http://www.w3.org/2000/svg") {
+abstract class SVGElement(name: String) : HTMLElement(name, "http://www.w3.org/2000/svg") {
     fun g(init: G.() -> Unit): G = initTag(G(), init)
     fun rect(init: RECT.() -> Unit): RECT = initTag(RECT(), init)
     fun path(init: PATH.() -> Unit): PATH = initTag(PATH(), init)
@@ -116,13 +143,13 @@ class RECT() : SVGElement("rect")
 class G() : SVGElement("g")
 class SVG() : SVGElement("svg")
 
-class DIV() : Element("div")
-class A() : Element("a")
-class H2() : Element("h2")
-class H3() : Element("h3")
-class H4() : Element("h4")
-class SPAN() : Element("span")
-class TEXTAREA() : Element("textarea") {
+class DIV() : HTMLElement("div")
+class A() : HTMLElement("a")
+class H2() : HTMLElement("h2")
+class H3() : HTMLElement("h3")
+class H4() : HTMLElement("h4")
+class SPAN() : HTMLElement("span")
+class TEXTAREA() : HTMLElement("textarea") {
     fun value(): String {
         val text: String? = element.asDynamic().value
         return text ?: ""
@@ -136,7 +163,8 @@ class TEXTAREA() : Element("textarea") {
         element.asDynamic().focus()
     }
 }
-class INPUT() : Element("input") {
+
+class INPUT() : HTMLElement("input") {
     fun type(value: String) = attr("type", value)
     fun name(value: String) = attr("name", value)
     fun autocomplete(value: String) = attr("autocomplete", value)
@@ -155,11 +183,11 @@ class INPUT() : Element("input") {
     }
 }
 
-class BUTTON() : Element("button") {
+class BUTTON() : HTMLElement("button") {
     fun type(value: String) = attr("type", value)
 }
 
-class FORM() : Element("form") {
+class FORM() : HTMLElement("form") {
     fun onsubmit(listener: (e: Event) -> Unit) = on("submit", listener)
 }
 
@@ -233,4 +261,8 @@ fun form(init: FORM.() -> Unit): FORM {
 
 fun text(text: String): TEXT {
     return TEXT(text)
+}
+
+external class ResizeObserver(callback: (e: dynamic) -> Unit) {
+    fun observe(e: Element)
 }

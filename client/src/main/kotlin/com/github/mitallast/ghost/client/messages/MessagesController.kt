@@ -8,10 +8,7 @@ import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.profile.SidebarDialogsController
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.client.view.*
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.message.Message
 import com.github.mitallast.ghost.message.MessageContent
@@ -63,6 +60,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
     }
 
     private suspend fun historyTop() {
+        // @todo optimize as single transaction
         MessagesStore.historyTop(profile.id, 100)
             .asReversed()
             .forEach { show(it) }
@@ -70,7 +68,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
 
     fun show() {
         ContentHeaderView.setTitle(profile.fullname)
-        ContentMainController.view(listView)
+        ContentMainController.view(ReverseScrollView(listView))
         ContentFooterController.view(editorView)
     }
 
@@ -110,16 +108,12 @@ class MessagesListController(private val self: UserProfile, private val profile:
 }
 
 class MessagesListView : View {
-    private val list = div {
-        clazz("messages-scroll")
-    }
     override val root = div {
         clazz("messages-list")
-        append(list)
     }
 
     fun add(view: View) {
-        list.append(view.root)
+        root.append(view.root)
     }
 }
 
@@ -159,7 +153,7 @@ class MessageEditorView(private val controller: MessagesListController) : View {
         clazz("message-editor")
         textarea {
             on("keypress", { event ->
-                val key: Int = event.asDynamic().keyCode;
+                val key = event.keyCode as Int
                 if (key == 13) {
                     event.preventDefault()
                     val text = value()
