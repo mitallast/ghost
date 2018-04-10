@@ -28,7 +28,7 @@ class ReverseScrollView(private val view: View) : View {
     init {
         root.onwheel(this::wheel)
         scrollbar.on("mousedown", this::mouseDown)
-        ResizeObserver({ resize() }).observe(root.element)
+        ResizeObserver({ mutation() }).observe(root.element)
         ResizeObserver({ mutation() }).observe(view.root.element)
     }
 
@@ -52,6 +52,7 @@ class ReverseScrollView(private val view: View) : View {
     }
 
     private fun mutation() {
+        console.log("mutation", bottom)
         if(bottom) {
             viewport.scrollTop = viewport.scrollHeight.toDouble()
         }

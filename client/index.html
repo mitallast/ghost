@@ -9,6 +9,11 @@
 </head>
 <body>
 
+<script>
+    if(!('ResizeObserver' in window)) {
+        document.write("<script src=\"resizeobserver.js\"></"+"script>")
+    }
+</script>
 <script type="text/javascript" src="build/web/kotlin.js"></script>
 <script type="text/javascript" src="build/web/kotlinx-serialization-runtime-js.js"></script>
 <script type="text/javascript" src="build/web/client.js"></script>
