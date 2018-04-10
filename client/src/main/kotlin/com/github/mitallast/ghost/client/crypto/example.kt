@@ -17,18 +17,18 @@ fun example() {
 
     SHA256.digest(bytes).then { console.log(it) }
 
-    ECDSA.generateKey(CurveP521).then { keyPair ->
+    ECDSA.generateKey(CurveP384).then { keyPair ->
         console.log("ECDSA key pair", keyPair)
 
         ECDSA.exportPrivateKey(keyPair.privateKey).then { buffer ->
             console.log("ECDSA export private key", HEX.toHex(buffer))
-            ECDSA.importPrivateKey(CurveP521, buffer).then {
+            ECDSA.importPrivateKey(CurveP384, buffer).then {
                 console.log("ECDSA import private key", it)
             }
         }
         ECDSA.exportPublicKey(keyPair.publicKey).then { buffer ->
             console.log("ECDSA export public key", HEX.toHex(buffer))
-            ECDSA.importPublicKey(CurveP521, buffer).then {
+            ECDSA.importPublicKey(CurveP384, buffer).then {
                 console.log("ECDSA import public key", it)
             }
         }
@@ -84,24 +84,24 @@ fun example() {
         }
     }
 
-    ECDH.generateKey(CurveP521).then { keyPair ->
+    ECDH.generateKey(CurveP384).then { keyPair ->
         console.log("ECDH key pair", keyPair)
         ECDH.exportPublicKey(keyPair.publicKey).then { buffer ->
             console.log("ECDH export public key", buffer)
-            ECDH.importPublicKey(CurveP521, buffer).then { key ->
+            ECDH.importPublicKey(CurveP384, buffer).then { key ->
                 console.log("ECDH import public key", key)
             }
         }
         ECDH.exportPrivateKey(keyPair.privateKey).then { buffer ->
             console.log("ECDH export private key", buffer)
-            ECDH.importPrivateKey(CurveP521, buffer).then { key ->
+            ECDH.importPrivateKey(CurveP384, buffer).then { key ->
                 console.log("ECDH import private key", key)
             }
         }
-        ECDH.deriveKey(CurveP521, keyPair.publicKey, keyPair.privateKey, AESKeyLen256).then { key ->
+        ECDH.deriveKey(CurveP384, keyPair.publicKey, keyPair.privateKey, AESKeyLen256).then { key ->
             console.log("ECDH deriveKey", key)
         }
-        ECDH.deriveBits(CurveP521, keyPair.publicKey, keyPair.privateKey, 528).then { buffer ->
+        ECDH.deriveBits(CurveP384, keyPair.publicKey, keyPair.privateKey, 384).then { buffer ->
             console.log("ECDH deriveBits", buffer)
         }
     }

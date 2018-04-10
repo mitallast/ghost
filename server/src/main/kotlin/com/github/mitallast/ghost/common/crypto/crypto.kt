@@ -1,9 +1,11 @@
 package com.github.mitallast.ghost.common.crypto
 
+import org.apache.logging.log4j.LogManager
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.DERSequence
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.util.encoders.Hex
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.math.BigInteger
@@ -20,7 +22,7 @@ import javax.crypto.spec.SecretKeySpec
 private object ECDHParams {
     val PROVIDER = BouncyCastleProvider.PROVIDER_NAME
     val ECC_KEY_TYPE = "EC"
-    val ECC_CURVE = "secp521r1"
+    val ECC_CURVE = "secp384r1"
     val ECC_SIGNATURE = "SHA512withECDSA"
     val ECDH_AGREEMENT = "ECDH"
     val AES_GCM = "AES/GCM/NoPadding"
@@ -84,6 +86,8 @@ object HASH {
 }
 
 object ECDSA {
+    private val logger = LogManager.getLogger()
+
     fun generate(): KeyPair {
         val generator = KeyPairGenerator.getInstance(ECDHParams.ECC_KEY_TYPE, ECDHParams.PROVIDER)
         val spec = ECGenParameterSpec(ECDHParams.ECC_CURVE)
@@ -135,6 +139,8 @@ object ECDSA {
      */
     fun raw2der(sign: ByteArray): ByteArray {
         require(sign.size % 2 == 0)
+        logger.info("raw2der {}", Hex.toHexString(sign))
+
         val m = sign.size
         val n = sign.size shr 1
         val r = BigInteger(1, sign.copyOfRange(0, n))
@@ -159,7 +165,14 @@ object ECDSA {
 
         val rb = r.value.toByteArray()
         val sb = s.value.toByteArray()
-        val m = 132 // max for secp521r1
+        // @todo check to p384
+        // bb7a267f86ac054dd3d3bcb6a40fa0377ef992bd2fe45baffe9beb6426aeb818f8650be332964d138d5e56bfbb31e345
+        // 523571fe598b4ff55bf8eae48f31348b0880616bad3069a09c53f93d42efc75699ac1769a8ea7f5e69bc922e29e09e37
+        // 000000000000000000000000000000000000
+        // cc4b00143499b9f309ce8af09e59427656056240e01969867647bc931d930fa0e9751b4f37de9c62ac55f8974f014ffa
+        // 000000000000000000000000000000000000
+        // bef187494a3d22525094cab0f451590ba7c07ad5de3ac0f15932cdbc7962af5f712c82bdfa716f5546d184d92017a92a
+        val m = 96 // max for p384
         val n = m shr 1
 
         val rl = Math.min(n, rb.size)
@@ -170,6 +183,7 @@ object ECDSA {
         val raw = ByteArray(m)
         System.arraycopy(rb, ro, raw, n - rl, rl)
         System.arraycopy(sb, so, raw, m - sl, sl)
+        logger.info("der2raw {}", Hex.toHexString(raw))
         return raw
     }
 }

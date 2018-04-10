@@ -26,8 +26,8 @@ class ECDHFlow {
     private var ecdh: ECDHKeyPair? = null
 
     suspend fun request(): ECDHRequest {
-        ecdsa = ECDSA.generateKey(CurveP521).await()
-        ecdh = ECDH.generateKey(CurveP521).await()
+        ecdsa = ECDSA.generateKey(CurveP384).await()
+        ecdh = ECDH.generateKey(CurveP384).await()
         val ecdhPublicKey = ECDH.exportPublicKey(ecdh!!.publicKey).await()
         val ecdsaPublicKey = ECDSA.exportPublicKey(ecdsa!!.publicKey).await()
 
@@ -45,16 +45,22 @@ class ECDHFlow {
         val serverKeyBuffer = toArrayBuffer(response.ecdhPublicKey)
         val sign = toArrayBuffer(response.sign)
         val buffer = toArrayBuffer(response.auth, response.ecdhPublicKey)
+        console.log("ecdsa verify")
         val verified = ECDSA.verify(HashSHA512, ServerKeys.publicKey(), sign, buffer).await()
         if (verified) {
-            val serverKey = ECDH.importPublicKey(CurveP521, serverKeyBuffer).await()
-            // 528 = 66 bytes
-            val secret = ECDH.deriveBits(CurveP521, serverKey, ecdh!!.privateKey, 528).await()
+            console.log("ECDH.importPublicKey")
+            val serverKey = ECDH.importPublicKey(CurveP384, serverKeyBuffer).await()
+            console.log("ECDH.deriveBits")
+            val secret = ECDH.deriveBits(CurveP384, serverKey, ecdh!!.privateKey, 384).await()
             // use SHA-256 as KDF function
+            console.log("SHA256.digest")
             val hash = SHA256.digest(secret).await()
+            console.log("AES.importKey")
             val secretKey = AES.importKey(hash).await()
             val auth = ECDHAuth(response.auth, secretKey, ecdsa!!.publicKey, ecdsa!!.privateKey)
+            console.log("ECDHAuthStore.storeAuth")
             ECDHAuthStore.storeAuth(auth)
+            console.log("ECDHResponse success")
             return auth
         } else {
             throw Exception("not verified")

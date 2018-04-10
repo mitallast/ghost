@@ -13,8 +13,8 @@ import org.khronos.webgl.Uint8Array
 
 object E2EDHFlow {
     suspend fun request(from: ByteArray, to: ByteArray): E2EAuthRequest {
-        val ecdh = ECDH.generateKey(CurveP521).await()
-        val ecdsa = ECDSA.generateKey(CurveP521).await()
+        val ecdh = ECDH.generateKey(CurveP384).await()
+        val ecdsa = ECDSA.generateKey(CurveP384).await()
 
         val request = E2EOutgoingRequest(
             to,
@@ -42,8 +42,8 @@ object E2EDHFlow {
     suspend fun validateRequest(request: E2EAuthRequest): Boolean {
         val fromECDHPublicBuffer = toArrayBuffer(request.ecdhPublicKey)
         val fromECDSAPublicBuffer = toArrayBuffer(request.ecdsaPublicKey)
-        val fromECDHPublicKey = ECDH.importPublicKey(CurveP521, fromECDHPublicBuffer).await()
-        val fromECDSAPublicKey = ECDSA.importPublicKey(CurveP521, fromECDSAPublicBuffer).await()
+        val fromECDHPublicKey = ECDH.importPublicKey(CurveP384, fromECDHPublicBuffer).await()
+        val fromECDSAPublicKey = ECDSA.importPublicKey(CurveP384, fromECDSAPublicBuffer).await()
 
         val fromSign = toArrayBuffer(request.sign)
         val buffer = toArrayBuffer(request.from, request.to, fromECDHPublicBuffer, fromECDSAPublicBuffer)
@@ -64,12 +64,12 @@ object E2EDHFlow {
     suspend fun answerRequest(address: ByteArray, password: String): E2EAuthResponse {
         val auth = ECDHAuthStore.loadAuth()!!
         val request = E2EIncomingRequestStore.load(address)!!
-        // 528 = 66 bytes
-        val ecdh = ECDH.generateKey(CurveP521).await()
-        val ecdsa = ECDSA.generateKey(CurveP521).await()
+        val ecdh = ECDH.generateKey(CurveP384).await()
+        val ecdsa = ECDSA.generateKey(CurveP384).await()
         val ecdhPublicKey = ECDH.exportPublicKey(ecdh.publicKey).await()
         val ecdsaPublicKey = ECDSA.exportPublicKey(ecdsa.publicKey).await()
-        val secret = ECDH.deriveBits(CurveP521, request.ecdhPublicKey, ecdh.privateKey, 528).await()
+
+        val secret = ECDH.deriveBits(CurveP384, request.ecdhPublicKey, ecdh.privateKey, 384).await()
 
         val pwdKey = PBKDF2.importKey(password).await()
         val secretKey = PBKDF2.deriveKeyAES(Uint8Array(secret), 1024, HashSHA512, pwdKey, AESKeyLen256).await()
@@ -99,8 +99,8 @@ object E2EDHFlow {
     suspend fun validateResponse(response: E2EAuthResponse): Boolean {
         val fromECDHPublicBuffer = toArrayBuffer(response.ecdhPublicKey)
         val fromECDSAPublicBuffer = toArrayBuffer(response.ecdsaPublicKey)
-        val fromECDHPublicKey = ECDH.importPublicKey(CurveP521, fromECDHPublicBuffer).await()
-        val fromECDSAPublicKey = ECDSA.importPublicKey(CurveP521, fromECDSAPublicBuffer).await()
+        val fromECDHPublicKey = ECDH.importPublicKey(CurveP384, fromECDHPublicBuffer).await()
+        val fromECDSAPublicKey = ECDSA.importPublicKey(CurveP384, fromECDSAPublicBuffer).await()
 
         val fromSign = toArrayBuffer(response.sign)
         val buffer = toArrayBuffer(response.from, response.to, fromECDHPublicBuffer, fromECDSAPublicBuffer)
@@ -123,8 +123,7 @@ object E2EDHFlow {
         val request = E2EOutgoingRequestStore.load(address)!!
         val response = E2EResponseStore.load(address)!!
 
-        // 528 = 66 bytes
-        val secret = ECDH.deriveBits(CurveP521, response.ecdhPublicKey, request.ecdhPrivateKey, 528).await()
+        val secret = ECDH.deriveBits(CurveP384, response.ecdhPublicKey, request.ecdhPrivateKey, 384).await()
 
         // use PBKDF2 as KDF function
         val pwdKey = PBKDF2.importKey(password).await()

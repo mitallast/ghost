@@ -68,8 +68,8 @@ internal object ECDHAuthStore {
             privateKeyB == null -> throw RuntimeException("private key not found")
             else -> {
                 val secretKey = AES.importKey(secretKeyB).await()
-                val publicKey = ECDSA.importPublicKey(CurveP521, publicKeyB).await()
-                val privateKey = ECDSA.importPrivateKey(CurveP521, privateKeyB).await()
+                val publicKey = ECDSA.importPublicKey(CurveP384, publicKeyB).await()
+                val privateKey = ECDSA.importPrivateKey(CurveP384, privateKeyB).await()
                 ECDHAuth(auth, secretKey, publicKey, privateKey)
             }
         }

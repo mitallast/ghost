@@ -68,8 +68,8 @@ object E2EAuthStore {
             privateKeyB == null -> null
             else -> {
                 val secretKey = AES.importKey(secretKeyB).await()
-                val publicKey = ECDSA.importPublicKey(CurveP521, publicKeyB).await()
-                val privateKey = ECDSA.importPrivateKey(CurveP521, privateKeyB).await()
+                val publicKey = ECDSA.importPublicKey(CurveP384, publicKeyB).await()
+                val privateKey = ECDSA.importPrivateKey(CurveP384, privateKeyB).await()
                 E2EAuth(auth, secretKey, publicKey, privateKey)
             }
         }
@@ -140,10 +140,10 @@ object E2EOutgoingRequestStore {
             ecdsaPublicKeyB == null -> null
             ecdsaPrivateKeyB == null -> null
             else -> {
-                val ecdhPublicKey = ECDH.importPublicKey(CurveP521, ecdhPublicKeyB).await()
-                val ecdhPrivateKey = ECDH.importPrivateKey(CurveP521, ecdhPrivateKeyB).await()
-                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP521, ecdsaPublicKeyB).await()
-                val ecdsaPrivateKey = ECDSA.importPrivateKey(CurveP521, ecdsaPrivateKeyB).await()
+                val ecdhPublicKey = ECDH.importPublicKey(CurveP384, ecdhPublicKeyB).await()
+                val ecdhPrivateKey = ECDH.importPrivateKey(CurveP384, ecdhPrivateKeyB).await()
+                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP384, ecdsaPublicKeyB).await()
+                val ecdsaPrivateKey = ECDSA.importPrivateKey(CurveP384, ecdsaPrivateKeyB).await()
                 E2EOutgoingRequest(address, ecdhPublicKey, ecdhPrivateKey, ecdsaPublicKey, ecdsaPrivateKey)
             }
         }
@@ -218,8 +218,8 @@ object E2EIncomingRequestStore {
             ecdhPublicKeyB == null -> null
             ecdsaPublicKeyB == null -> null
             else -> {
-                val ecdhPublicKey = ECDH.importPublicKey(CurveP521, ecdhPublicKeyB).await()
-                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP521, ecdsaPublicKeyB).await()
+                val ecdhPublicKey = ECDH.importPublicKey(CurveP384, ecdhPublicKeyB).await()
+                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP384, ecdsaPublicKeyB).await()
                 E2EIncomingRequest(address, ecdhPublicKey, ecdsaPublicKey)
             }
         }
@@ -292,8 +292,8 @@ object E2EResponseStore {
             ecdhPublicKeyB == null -> null
             ecdsaPublicKeyB == null -> null
             else -> {
-                val ecdhPublicKey = ECDH.importPublicKey(CurveP521, ecdhPublicKeyB).await()
-                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP521, ecdsaPublicKeyB).await()
+                val ecdhPublicKey = ECDH.importPublicKey(CurveP384, ecdhPublicKeyB).await()
+                val ecdsaPublicKey = ECDSA.importPublicKey(CurveP384, ecdsaPublicKeyB).await()
                 E2EResponse(address, ecdhPublicKey, ecdsaPublicKey)
             }
         }
