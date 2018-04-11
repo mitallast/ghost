@@ -32,10 +32,23 @@ class ReverseScrollView(private val view: View) : View {
         ResizeObserver({ mutation() }).observe(view.root.element)
     }
 
+    private var hideTimer: Int? = null
     private var bottom = true
     private var mouseY = 0
 
     private val minHeight = 20
+
+    private fun scheduleHide() {
+        console.log("schedule timeout")
+        cancelHide()
+        hideTimer = window.setTimeout(this::hide, 1000)
+    }
+
+    private fun cancelHide() {
+        if(hideTimer != null) {
+            window.cancelAnimationFrame(hideTimer!!)
+        }
+    }
 
     private fun resize() {
         if (viewport.scrollHeight != 0) {
@@ -53,12 +66,14 @@ class ReverseScrollView(private val view: View) : View {
                 scrollbar.style.height = "${height}px"
                 scrollbar.style.display = "block"
                 scrollbar.style.top = "${offset}px"
+                scheduleHide()
             } else hide()
         } else hide()
     }
 
     private fun hide() {
         scrollbar.style.display = "none"
+        cancelHide()
     }
 
     private fun mutation() {
