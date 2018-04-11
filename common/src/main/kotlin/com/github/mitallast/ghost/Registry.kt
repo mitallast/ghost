@@ -44,5 +44,6 @@ object Registry {
         Codec.register(Message.messageId, Message.codec)
         Codec.register(TextMessage.messageId, TextMessage.codec)
         Codec.register(ServiceMessage.messageId, ServiceMessage.codec)
+        Codec.register(EncryptedFileMessage.messageId, EncryptedFileMessage.codec)
     }
 }

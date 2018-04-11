@@ -59,3 +59,34 @@ class ServiceMessage(val text: String) : MessageContent {
         )
     }
 }
+
+class EncryptedFileMessage(
+    val name: String,
+    val size: Int,
+    val mimetype: String,
+    val address: String,
+    val sign: ByteArray,
+    val iv: ByteArray
+) : MessageContent {
+
+    override fun messageId(): Int = messageId
+
+    companion object {
+        const val messageId = 0x0603
+        val codec = Codec.of(
+            ::EncryptedFileMessage,
+            EncryptedFileMessage::name,
+            EncryptedFileMessage::size,
+            EncryptedFileMessage::mimetype,
+            EncryptedFileMessage::address,
+            EncryptedFileMessage::sign,
+            EncryptedFileMessage::iv,
+            Codec.stringCodec(),
+            Codec.intCodec(),
+            Codec.stringCodec(),
+            Codec.stringCodec(),
+            Codec.bytesCodec(),
+            Codec.bytesCodec()
+        )
+    }
+}

@@ -53,9 +53,9 @@ object E2EDHFlow {
             return false
         }
         val incoming = E2EIncomingRequest(
-                request.from,
-                fromECDHPublicKey,
-                fromECDSAPublicKey
+            request.from,
+            fromECDHPublicKey,
+            fromECDSAPublicKey
         )
         E2EIncomingRequestStore.store(incoming)
         return true
@@ -75,10 +75,10 @@ object E2EDHFlow {
         val secretKey = PBKDF2.deriveKeyAES(Uint8Array(secret), 1024, HashSHA512, pwdKey, AESKeyLen256).await()
 
         val fromAuth = E2EAuth(
-                address,
-                secretKey,
-                request.ecdsaPublicKey,
-                ecdsa.privateKey
+            address,
+            secretKey,
+            request.ecdsaPublicKey,
+            ecdsa.privateKey
         )
 
         val buffer2 = toArrayBuffer(auth.auth, request.address, ecdhPublicKey, ecdsaPublicKey)
@@ -88,11 +88,11 @@ object E2EDHFlow {
         E2EIncomingRequestStore.remove(address)
 
         return E2EAuthResponse(
-                auth.auth,
-                request.address,
-                toByteArray(ecdhPublicKey),
-                toByteArray(ecdsaPublicKey),
-                toByteArray(sign)
+            auth.auth,
+            request.address,
+            toByteArray(ecdhPublicKey),
+            toByteArray(ecdsaPublicKey),
+            toByteArray(sign)
         )
     }
 
@@ -111,9 +111,9 @@ object E2EDHFlow {
         }
 
         val r = E2EResponse(
-                response.from,
-                fromECDHPublicKey,
-                fromECDSAPublicKey
+            response.from,
+            fromECDHPublicKey,
+            fromECDSAPublicKey
         )
         E2EResponseStore.store(r)
         return true
@@ -130,10 +130,10 @@ object E2EDHFlow {
         val secretKey = PBKDF2.deriveKeyAES(Uint8Array(secret), 1024, HashSHA512, pwdKey, AESKeyLen256).await()
 
         val auth = E2EAuth(
-                address,
-                secretKey,
-                response.ecdsaPublicKey,
-                request.ecdsaPrivateKey
+            address,
+            secretKey,
+            response.ecdsaPublicKey,
+            request.ecdsaPrivateKey
         )
 
         E2EAuthStore.store(auth)
@@ -166,6 +166,31 @@ object E2EDHFlow {
         val decrypted = AES.decrypt(auth.secretKey, data, iv).await()
         val buffer = toArrayBuffer(encrypted.from, encrypted.iv, decrypted)
         val verified = ECDSA.verify(HashSHA512, auth.publicKey, sign, buffer).await()
+        if (verified) {
+            return decrypted
+        } else {
+            throw IllegalArgumentException("e2e decrypt: sign not verified")
+        }
+    }
+
+    suspend fun decrypt(from: ByteArray,
+                        to: ByteArray,
+                        sign: ByteArray,
+                        iv: ByteArray,
+                        data: ArrayBuffer,
+                        own: Boolean): ArrayBuffer {
+        val auth = E2EAuthStore.load(from)!!
+        val ivB = Uint8Array(toArrayBuffer(iv))
+        val signB = toArrayBuffer(sign)
+        val decrypted = AES.decrypt(auth.secretKey, data, ivB).await()
+        val verified = if (own) {
+            val buffer = toArrayBuffer(to, iv, decrypted)
+            val publicKey = ECDSA.toPublicKey(CurveP384, auth.privateKey)
+            ECDSA.verify(HashSHA512, publicKey, signB, buffer).await()
+        } else {
+            val buffer = toArrayBuffer(from, iv, decrypted)
+            ECDSA.verify(HashSHA512, auth.publicKey, signB, buffer).await()
+        }
         if (verified) {
             return decrypted
         } else {

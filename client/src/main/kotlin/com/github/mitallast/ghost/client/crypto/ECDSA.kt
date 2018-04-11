@@ -1,5 +1,6 @@
 package com.github.mitallast.ghost.client.crypto
 
+import com.github.mitallast.ghost.client.common.await
 import org.khronos.webgl.ArrayBuffer
 import kotlin.js.Promise
 import kotlin.js.json
@@ -39,8 +40,26 @@ object ECDSA {
         )
     }
 
+    suspend fun toPublicKey(curve: Curve, privateKey: ECDSAPrivateKey): ECDSAPublicKey {
+        val jwk = crypto.subtle.exportKey<dynamic>("jwk", privateKey).await()
+        val publicJwk = js("{}")
+        publicJwk.crv = jwk.crv
+        publicJwk.ext = true
+        publicJwk.key_opts = arrayOf("verify")
+        publicJwk.kty = jwk.kty
+        publicJwk.x = jwk.x
+        publicJwk.y = jwk.y
+        return crypto.subtle.importKey(
+            format = "jwk",
+            keyData = publicJwk,
+            algorithm = json(Pair("name", name), Pair("namedCurve", curve.name)),
+            extractable = true,
+            keyUsages = arrayOf("verify")
+        ).await()
+    }
+
     fun exportPublicKey(key: ECDSAPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("spki", key).then { ECWrap.maybeWrap(it) }
+        return crypto.subtle.exportKey<ArrayBuffer>("spki", key).then { ECWrap.maybeWrap(it) }
     }
 
     fun exportPrivateKey(key: ECDSAPrivateKey): Promise<ArrayBuffer> {

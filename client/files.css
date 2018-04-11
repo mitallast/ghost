@@ -1,0 +1,58 @@
+.content-main {
+    position: relative;
+}
+.files-drop-container {
+    background: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    top:0;
+    left:0;
+    bottom:0;
+    right:0;
+    z-index: 100;
+    display: flex;
+}
+
+.files-drop-box {
+    margin: auto;
+    width: 400px;
+    height: 400px;
+    border: 3px dashed white;
+    border-radius: 20px;
+}
+
+.files-drop-image-box {
+    margin: auto;
+    width: 400px;
+    height: 400px;
+    background: white;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.files-drop-image {
+    flex-grow: 1;
+    display: flex;
+}
+.files-drop-image > img{
+    max-height: 336px;
+    max-width: 380px;
+    margin: auto;
+}
+
+.files-drop-button {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    line-height: 34px;
+}
+
+.file-name {
+    flex-grow: 1;
+}
+.file-mimetype {
+    margin: 0 5px;
+}
+.file-size {
+    margin: 0 5px;
+}

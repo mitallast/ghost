@@ -40,7 +40,7 @@ object ECDH {
     }
 
     fun exportPublicKey(key: ECDHPublicKey): Promise<ArrayBuffer> {
-        return crypto.subtle.exportKey("spki", key).then { ECWrap.maybeWrap(it) }
+        return crypto.subtle.exportKey<ArrayBuffer>("spki", key).then { ECWrap.maybeWrap(it) }
     }
 
     fun exportPrivateKey(key: ECDHPrivateKey): Promise<ArrayBuffer> {

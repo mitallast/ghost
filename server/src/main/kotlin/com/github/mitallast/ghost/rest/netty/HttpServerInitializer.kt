@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler
 import io.netty.handler.stream.ChunkedWriteHandler
 import io.netty.util.concurrent.DefaultEventExecutorGroup
+import org.rocksdb.util.SizeUnit
 
 class HttpServerInitializer(
     private val httpHandler: HttpServerHandler,
@@ -19,10 +20,10 @@ class HttpServerInitializer(
     override fun initChannel(ch: SocketChannel) {
         val pipeline = ch.pipeline()
         pipeline.addLast(HttpServerCodec(4096, 8192, 8192, false))
-        pipeline.addLast(HttpObjectAggregator(65536))
+        pipeline.addLast(HttpObjectAggregator(SizeUnit.MB.toInt()))
         pipeline.addLast(ChunkedWriteHandler())
         pipeline.addLast(WebSocketServerCompressionHandler())
-        pipeline.addLast(WebSocketServerProtocolHandler("/ws/", null, true))
+        pipeline.addLast(WebSocketServerProtocolHandler("/ws/", null, true, SizeUnit.MB.toInt()))
         pipeline.addLast(webSocketFrameHandler)
         pipeline.addLast(group, httpHandler)
     }

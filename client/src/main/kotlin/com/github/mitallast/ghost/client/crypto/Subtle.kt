@@ -23,7 +23,7 @@ external interface SubtleCrypto {
     fun deriveKey(algorithm: Json, baseKey: CryptoKey, derivedKeyType: Json, extractable: Boolean, keyUsages: Array<String>): Promise<dynamic>
     fun deriveBits(algorithm: Json, baseKey: CryptoKey, length: Int): Promise<ArrayBuffer>
     fun importKey(format: String, keyData: dynamic, algorithm: Json, extractable: Boolean, keyUsages: Array<String>): Promise<dynamic>
-    fun exportKey(format: String, key: CryptoKey): Promise<ArrayBuffer>
+    fun <T> exportKey(format: String, key: CryptoKey): Promise<T>
     fun wrapKey(format: String, key: CryptoKey, wrappingKey: CryptoKey, algorithm: Json): Promise<ArrayBuffer>
     fun unwrapKey(
         format: String,

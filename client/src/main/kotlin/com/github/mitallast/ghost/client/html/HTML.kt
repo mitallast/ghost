@@ -3,6 +3,7 @@ package com.github.mitallast.ghost.client.html
 import org.w3c.dom.Element
 import org.w3c.dom.events.Event
 import org.w3c.dom.get
+import org.w3c.files.Blob
 import kotlin.browser.window
 import kotlin.js.json
 
@@ -77,6 +78,7 @@ abstract class HTMLElement(name: String, ns: String? = null) {
     fun input(init: INPUT.() -> Unit): INPUT = initTag(INPUT(), init)
     fun button(init: BUTTON.() -> Unit): BUTTON = initTag(BUTTON(), init)
     fun form(init: FORM.() -> Unit): FORM = initTag(FORM(), init)
+    fun img(init: IMG.() -> Unit): IMG = initTag(IMG(), init)
     fun svg(init: SVG.() -> Unit): SVG = initTag(SVG(), init)
 
     fun text(text: String) {
@@ -106,6 +108,10 @@ abstract class HTMLElement(name: String, ns: String? = null) {
 
     fun onwheel(listener: (e: dynamic) -> Unit) {
         element.addEventListener("wheel", listener, json(Pair("passive", false)))
+    }
+
+    fun onload(listener: (e: dynamic) -> Unit) {
+        element.addEventListener("load", listener)
     }
 
     fun remove() {
@@ -191,6 +197,14 @@ class FORM() : HTMLElement("form") {
     fun onsubmit(listener: (e: Event) -> Unit) = on("submit", listener)
 }
 
+class IMG() : HTMLElement("img") {
+    var src: String
+        get() = element.asDynamic().src as String
+        set(value) {
+            element.asDynamic().src = value
+        }
+}
+
 class TEXT(text: String) {
     internal val node = window.document.createTextNode(text)
 
@@ -255,6 +269,12 @@ fun button(init: BUTTON.() -> Unit): BUTTON {
 
 fun form(init: FORM.() -> Unit): FORM {
     val node = FORM()
+    node.init()
+    return node
+}
+
+fun img(init: IMG.() -> Unit): IMG {
+    val node = IMG()
     node.init()
     return node
 }
