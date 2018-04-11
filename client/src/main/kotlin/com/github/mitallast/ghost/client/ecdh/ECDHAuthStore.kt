@@ -28,7 +28,9 @@ internal object ECDHAuthStore {
                 db.createObjectStore("privateKey")
             }
             if (event.oldVersion < 2) {
-                db.createObjectStore("address")
+                if(!db.objectStoreNames.contains("address")){
+                    db.createObjectStore("address")
+                }
             }
         }
         db = open.promise()
