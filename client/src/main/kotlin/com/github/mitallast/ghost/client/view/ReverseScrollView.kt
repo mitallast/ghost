@@ -36,7 +36,7 @@ class ReverseScrollView(private val view: View) : View {
     private var mouseY = 0
 
     private fun resize() {
-        if(viewport.scrollHeight != 0) {
+        if (viewport.scrollHeight != 0) {
             val h = (barContainer.offsetHeight * (viewport.offsetHeight.toDouble() / viewport.scrollHeight)).roundToInt()
             val offset = (barContainer.offsetHeight * (viewport.scrollTop / viewport.scrollHeight)).roundToInt()
             if (h != barContainer.offsetHeight) {
@@ -44,7 +44,7 @@ class ReverseScrollView(private val view: View) : View {
                 scrollbar.style.display = "block"
                 scrollbar.style.top = "${offset}px"
             } else hide()
-        }else hide()
+        } else hide()
     }
 
     private fun hide() {
@@ -52,24 +52,27 @@ class ReverseScrollView(private val view: View) : View {
     }
 
     private fun mutation() {
-        console.log("mutation", bottom)
-        if(bottom) {
+        if (bottom) {
             viewport.scrollTop = viewport.scrollHeight.toDouble()
         }
         resize()
     }
 
     private fun scroll(delta: Int) {
-        val maxOffset = viewport.scrollHeight - viewport.offsetHeight
-        val newOffset = max(0.0, min(maxOffset.toDouble(), (viewport.scrollTop + delta)))
-        bottom = maxOffset == newOffset.roundToInt()
-        viewport.scrollTop = newOffset
+        if (bottom && delta > 0) {
+            viewport.scrollTop = viewport.scrollHeight.toDouble()
+        } else {
+            val maxOffset = viewport.scrollHeight - viewport.offsetHeight
+            val newOffset = max(0.0, min(maxOffset.toDouble(), (viewport.scrollTop + delta)))
+            bottom = maxOffset == newOffset.roundToInt()
+            viewport.scrollTop = newOffset
+        }
         resize()
     }
 
     private fun wheel(e: dynamic) {
         e.preventDefault()
-        scroll(e.deltaY as Int / 10)
+        scroll(e.deltaY as Int)
     }
 
     private fun mouseDown(e: dynamic) {
@@ -80,8 +83,8 @@ class ReverseScrollView(private val view: View) : View {
     }
 
     private val mouseUpListener: (dynamic) -> Unit = {
-         window.document.removeEventListener("mouseup", this.mouseUp)
-         window.document.removeEventListener("mousemove", mouseMove)
+        window.document.removeEventListener("mouseup", this.mouseUp)
+        window.document.removeEventListener("mousemove", mouseMove)
     }
 
     private val mouseUp = mouseUpListener
@@ -89,7 +92,7 @@ class ReverseScrollView(private val view: View) : View {
     private val mouseMove: (dynamic) -> Unit = { e ->
         val mouseDelta = e.clientY as Int - mouseY
         mouseY = e.clientY as Int
-        val delta : Int= (viewport.scrollHeight * (mouseDelta.toDouble() / barContainer.offsetHeight)).roundToInt()
+        val delta: Int = (viewport.scrollHeight * (mouseDelta.toDouble() / barContainer.offsetHeight)).roundToInt()
         scroll(delta)
     }
 }

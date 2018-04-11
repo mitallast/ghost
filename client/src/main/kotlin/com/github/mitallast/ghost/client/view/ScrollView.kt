@@ -63,7 +63,7 @@ class ScrollView(private val view: View) : View {
 
     private fun wheel(e: dynamic) {
         e.preventDefault()
-        scroll(e.deltaY as Int / 10)
+        scroll(e.deltaY as Int)
     }
 
     private fun mouseDown(e: dynamic) {
