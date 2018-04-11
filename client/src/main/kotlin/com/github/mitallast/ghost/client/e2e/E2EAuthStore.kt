@@ -18,6 +18,7 @@ object E2EAuthStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open e2e db")
         val open = indexedDB.open("e2e", 1)
         open.onupgradeneeded = { event ->
             val db = open.result
@@ -88,6 +89,7 @@ object E2EOutgoingRequestStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open e2e outgoing db")
         val open = indexedDB.open("e2e.outgoing", 1)
         open.onupgradeneeded = { event ->
             val db = open.result
@@ -176,6 +178,7 @@ object E2EIncomingRequestStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open e2e incoming db")
         val open = indexedDB.open("e2e.incoming", 1)
         open.onupgradeneeded = { event ->
             val db = open.result
@@ -250,6 +253,7 @@ object E2EResponseStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open e2e response db")
         val open = indexedDB.open("e2e.response", 1)
         open.onupgradeneeded = { event ->
             val db = open.result

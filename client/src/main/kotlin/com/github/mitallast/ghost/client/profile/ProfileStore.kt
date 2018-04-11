@@ -11,6 +11,7 @@ object ProfileStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open profiles db")
         val open = indexedDB.open("profiles", 1)
         open.onupgradeneeded = { event ->
             val db = open.result

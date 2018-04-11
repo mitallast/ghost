@@ -18,15 +18,17 @@ internal object ECDHAuthStore {
 
     init {
         console.log("open ecdh db")
-        val open = indexedDB.open("ecdh", 1)
+        val open = indexedDB.open("ecdh", 2)
         open.onupgradeneeded = { event ->
             val db = open.result
             console.log("upgrade ecdh db", db)
             if (event.oldVersion < 1) {
-                db.createObjectStore("address")
                 db.createObjectStore("secretKey")
                 db.createObjectStore("publicKey")
                 db.createObjectStore("privateKey")
+            }
+            if (event.oldVersion < 2) {
+                db.createObjectStore("address")
             }
         }
         db = open.promise()

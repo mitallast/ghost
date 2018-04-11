@@ -15,6 +15,7 @@ object MessagesStore {
     private val max = Codec.longCodec().write(Long.MAX_VALUE)
 
     init {
+        console.log("open messages db")
         val open = indexedDB.open("messages", 1)
         open.onupgradeneeded = { event ->
             val db = open.result

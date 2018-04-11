@@ -19,6 +19,7 @@ internal object UpdatesStore {
     private val db: Promise<IDBDatabase>
 
     init {
+        console.log("open updates db")
         val open = indexedDB.open("updates", 2)
         open.onupgradeneeded = { event ->
             val db = open.result
