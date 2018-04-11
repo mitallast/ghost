@@ -35,12 +35,22 @@ class ReverseScrollView(private val view: View) : View {
     private var bottom = true
     private var mouseY = 0
 
+    private val minHeight = 20
+
     private fun resize() {
         if (viewport.scrollHeight != 0) {
-            val h = (barContainer.offsetHeight * (viewport.offsetHeight.toDouble() / viewport.scrollHeight)).roundToInt()
-            val offset = (barContainer.offsetHeight * (viewport.scrollTop / viewport.scrollHeight)).roundToInt()
-            if (h != barContainer.offsetHeight) {
-                scrollbar.style.height = "${h}px"
+            // compute real bar height
+            val computedHeight = (barContainer.offsetHeight * (viewport.offsetHeight.toDouble() / viewport.scrollHeight)).roundToInt()
+            // constraint bar height
+            val height = max(computedHeight, minHeight)
+            // what constraint added to real bar height
+            val delta = max(0, height - computedHeight)
+            // constraint bar container height
+            val containerHeight = barContainer.offsetHeight - delta
+            // compute offset with constraint
+            val offset = (containerHeight * (viewport.scrollTop / viewport.scrollHeight)).roundToInt()
+            if (height != barContainer.offsetHeight) {
+                scrollbar.style.height = "${height}px"
                 scrollbar.style.display = "block"
                 scrollbar.style.top = "${offset}px"
             } else hide()
