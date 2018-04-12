@@ -95,7 +95,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
             val reader = FileReader()
             reader.readAsArrayBuffer(file)
             val buffer = reader.await<ArrayBuffer>()
-            val encrypted = E2EDHFlow.encrypt(self.id, profile.id, buffer)
+            val encrypted = E2EDHFlow.encrypt(profile.id, buffer)
             val xhr = XMLHttpRequest()
             xhr.open("POST", "/file/upload", true)
             xhr.onload = {

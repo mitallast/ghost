@@ -5,7 +5,6 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
-import com.github.mitallast.ghost.client.updates.UpdatesController
 import com.github.mitallast.ghost.client.view.ContentFooterController
 import com.github.mitallast.ghost.client.view.ContentHeaderView
 import com.github.mitallast.ghost.client.view.ContentMainController
@@ -13,14 +12,14 @@ import com.github.mitallast.ghost.client.view.View
 import com.github.mitallast.ghost.e2e.E2EAuthRequest
 
 object IncomingRequestController {
-    suspend fun handle(request: E2EAuthRequest) {
+    suspend fun handle(from: ByteArray, request: E2EAuthRequest) {
         console.log("e2e request received")
-        if (E2EDHFlow.validateRequest(request)) {
+        if (E2EDHFlow.validateRequest(from, request)) {
             console.log("new auth request validated")
-            start(request.from)
+            start(from)
         } else {
             console.log("auth request not valid")
-            // @todo send canceled
+            E2EController.cancel(from)
         }
     }
 
@@ -32,11 +31,9 @@ object IncomingRequestController {
     }
 
     suspend fun answer(address: ByteArray, password: String) {
-        val response = E2EDHFlow.answerRequest(address, password)
-        UpdatesController.send(address, response)
+        E2EController.answer(address, password)
 
         val view = IncomingRequestAnsweredView(address)
-
         ContentHeaderView.setTitle("Incoming request: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
@@ -88,6 +85,12 @@ class IncomingRequestView(private val address: ByteArray) : View {
                     type("submit")
                     text("OK")
                 }
+                button {
+                    clazz("btn")
+                    type("button")
+                    text("Cancel")
+                    onclick { E2EController.cancel(address) }
+                }
             }
             onsubmit {
                 launch {
@@ -130,7 +133,6 @@ class IncomingRequestsView(private val requests: List<ByteArray>) : View {
         div {
             clazz("requests-scroll")
             for (request in requests) {
-                console.log("render request")
                 div {
                     clazz("request-container")
                     h4 { text(HEX.toHex(request)) }
@@ -138,6 +140,11 @@ class IncomingRequestsView(private val requests: List<ByteArray>) : View {
                         clazz("btn", "btn-sm")
                         text("Answer")
                         onclick { IncomingRequestController.start(request) }
+                    }
+                    button {
+                        clazz("btn", "btn-sm")
+                        text("Cancel")
+                        onclick { E2EController.cancel(request) }
                     }
                 }
             }

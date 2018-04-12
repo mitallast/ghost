@@ -246,7 +246,10 @@ object E2EIncomingRequestStore {
 class E2EResponse(
         val address: ByteArray,
         val ecdhPublicKey: ECDHPublicKey,
-        val ecdsaPublicKey: ECDSAPublicKey
+        val ecdsaPublicKey: ECDSAPublicKey,
+        val sign: ByteArray,
+        val iv: ByteArray,
+        val encrypted: ByteArray
 )
 
 object E2EResponseStore {
@@ -254,12 +257,17 @@ object E2EResponseStore {
 
     init {
         console.log("open e2e response db")
-        val open = indexedDB.open("e2e.response", 1)
+        val open = indexedDB.open("e2e.response", 2)
         open.onupgradeneeded = { event ->
             val db = open.result
             if (event.oldVersion < 1) {
                 db.createObjectStore("ECDH.public")
                 db.createObjectStore("ECDSA.public")
+            }
+            if(event.oldVersion < 2) {
+                db.createObjectStore("sign")
+                db.createObjectStore("iv")
+                db.createObjectStore("encrypted")
             }
         }
         db = open.promise()
@@ -284,6 +292,9 @@ object E2EResponseStore {
         val tx = tx("readwrite")
         tx.objectStore("ECDH.public").put(ecdhPublicKeyB, request.address).await()
         tx.objectStore("ECDSA.public").put(ecdsaPublicKeyB, request.address).await()
+        tx.objectStore("sign").put(request.sign, request.address).await()
+        tx.objectStore("iv").put(request.iv, request.address).await()
+        tx.objectStore("encrypted").put(request.encrypted, request.address).await()
         tx.await()
     }
 
@@ -291,14 +302,20 @@ object E2EResponseStore {
         val tx = tx()
         val ecdhPublicKeyB = tx.objectStore("ECDH.public").get<ArrayBuffer>(address).await()
         val ecdsaPublicKeyB = tx.objectStore("ECDSA.public").get<ArrayBuffer>(address).await()
+        val sign = tx.objectStore("sign").get<ByteArray>(address).await()
+        val iv = tx.objectStore("iv").get<ByteArray>(address).await()
+        val encrypted = tx.objectStore("encrypted").get<ByteArray>(address).await()
         tx.await()
         return when {
             ecdhPublicKeyB == null -> null
             ecdsaPublicKeyB == null -> null
+            sign == null -> null
+            iv == null -> null
+            encrypted == null -> null
             else -> {
                 val ecdhPublicKey = ECDH.importPublicKey(CurveP384, ecdhPublicKeyB).await()
                 val ecdsaPublicKey = ECDSA.importPublicKey(CurveP384, ecdsaPublicKeyB).await()
-                E2EResponse(address, ecdhPublicKey, ecdsaPublicKey)
+                E2EResponse(address, ecdhPublicKey, ecdsaPublicKey, sign, iv, encrypted)
             }
         }
     }
@@ -307,6 +324,9 @@ object E2EResponseStore {
         val tx = tx("readwrite")
         tx.objectStore("ECDSA.public").delete(address).await()
         tx.objectStore("ECDH.public").delete(address).await()
+        tx.objectStore("sign").delete(address).await()
+        tx.objectStore("iv").delete(address).await()
+        tx.objectStore("encrypted").delete(address).await()
         tx.await()
     }
 

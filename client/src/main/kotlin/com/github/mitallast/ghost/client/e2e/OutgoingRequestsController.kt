@@ -28,6 +28,11 @@ class OutgoingRequestsView(private val requests: List<ByteArray>) : View {
                 div {
                     clazz("request-container")
                     h4 { text(HEX.toHex(request)) }
+                    button {
+                        clazz("btn", "btn-sm")
+                        text("Cancel")
+                        onclick { E2EController.cancel(request) }
+                    }
                 }
             }
         }

@@ -27,8 +27,8 @@ object Registry {
 
         Codec.register(E2EAuthRequest.messageId, E2EAuthRequest.codec)
         Codec.register(E2EAuthResponse.messageId, E2EAuthResponse.codec)
-        Codec.register(E2EComplete.messageId, E2EComplete.codec)
         Codec.register(E2EEncrypted.messageId, E2EEncrypted.codec)
+        Codec.register(E2EAuthCanceled.messageId(), E2EAuthCanceled.codec)
 
         Codec.register(Update.messageId, Update.codec)
         Codec.register(InstallUpdate.messageId, InstallUpdate.codec)

@@ -27,8 +27,7 @@ object AddRequestController {
             existsAuth(to) -> "address already exists"
             existsRequest(to) -> "request already exists"
             else -> {
-                val auth = ECDHController.auth()
-                val request = E2EDHFlow.request(auth, to)
+                val request = E2EDHFlow.request(to)
                 UpdatesController.send(to, request)
                 ContentMainController.view(DialogRequestSentView(to))
                 null
@@ -36,7 +35,7 @@ object AddRequestController {
         }
     }
 
-    private suspend fun isSelf(address: ByteArray): Boolean {
+    private fun isSelf(address: ByteArray): Boolean {
         val self = ECDHController.auth()
         return self.contentEquals(address)
     }

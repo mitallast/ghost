@@ -1,25 +1,26 @@
 package com.github.mitallast.ghost.client.e2e
 
 import com.github.mitallast.ghost.client.common.launch
+import com.github.mitallast.ghost.client.common.toArrayBuffer
+import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
+import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.view.ContentFooterController
 import com.github.mitallast.ghost.client.view.ContentHeaderView
 import com.github.mitallast.ghost.client.view.ContentMainController
 import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.e2e.E2EAuthResponse
+import com.github.mitallast.ghost.profile.UserProfile
 
 object ResponseController {
-    suspend fun handle(response: E2EAuthResponse) {
+    suspend fun handle(from: ByteArray, response: E2EAuthResponse) {
         console.log("e2e response received")
-        if (E2EDHFlow.validateResponse(response)) {
-            start(response.from)
-        } else {
-            console.error("e2e response is invalid")
-            // @todo send request canceled
-        }
+        E2EDHFlow.storeResponse(from, response)
+        start(from)
     }
 
     fun start(address: ByteArray) {
@@ -30,8 +31,11 @@ object ResponseController {
     }
 
     suspend fun complete(address: ByteArray, password: String) {
-        E2EDHFlow.completeResponse(address, password)
-        E2EController.complete(address)
+        val decrypted = E2EDHFlow.completeResponse(address, password)
+        val profile = UserProfile.codec.read(toByteArray(decrypted))
+        ProfileController.updateProfile(profile)
+        val self = ProfileController.profile()
+        E2EController.send(address, self)
 
         val view = ResponseCompleteView(address)
         ContentHeaderView.setTitle("Response: " + HEX.toHex(address))
@@ -85,6 +89,12 @@ class ResponseView(private val address: ByteArray) : View {
                     type("submit")
                     text("OK")
                 }
+                button {
+                    clazz("btn")
+                    type("button")
+                    text("Cancel")
+                    onclick { E2EController.cancel(address) }
+                }
             }
             onsubmit {
                 launch {
@@ -94,7 +104,12 @@ class ResponseView(private val address: ByteArray) : View {
                         passwordInput.focus()
                         error("password is required")
                     } else {
-                        ResponseController.complete(address, value)
+                        try {
+                            ResponseController.complete(address, value)
+                        } catch (ex: Throwable) {
+                            console.log(ex)
+                            error("error validate auth response, check your password")
+                        }
                     }
                 }
             }
@@ -127,7 +142,6 @@ class PendingResponsesView(private val requests: List<ByteArray>) : View {
         div {
             clazz("requests-scroll")
             for (request in requests) {
-                console.log("render request")
                 div {
                     clazz("request-container")
                     h4 { text(HEX.toHex(request)) }
@@ -135,6 +149,12 @@ class PendingResponsesView(private val requests: List<ByteArray>) : View {
                         clazz("btn", "btn-sm")
                         text("Complete")
                         onclick { ResponseController.start(request) }
+                    }
+                    button {
+                        clazz("btn")
+                        type("button")
+                        text("Cancel")
+                        onclick { E2EController.cancel(request) }
                     }
                 }
             }
