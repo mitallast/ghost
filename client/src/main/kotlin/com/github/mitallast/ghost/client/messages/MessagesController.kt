@@ -91,13 +91,13 @@ class MessagesListController(private val self: UserProfile, private val profile:
 
     override fun send(file: File) {
         launch {
-            console.log("send e2e file")
+            console.log("send e2e file", file)
             val reader = FileReader()
             reader.readAsArrayBuffer(file)
             val buffer = reader.await<ArrayBuffer>()
             val encrypted = E2EDHFlow.encrypt(profile.id, buffer)
             val xhr = XMLHttpRequest()
-            xhr.open("POST", "/file/upload", true)
+            xhr.open("POST", "http://localhost:8800/file/upload", true)
             xhr.onload = {
                 if (xhr.status.toInt() == 200) {
                     val address = xhr.responseText
@@ -124,7 +124,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
             console.log("download e2e file")
             val xhr = XMLHttpRequest()
             xhr.responseType = XMLHttpRequestResponseType.ARRAYBUFFER
-            xhr.open("GET", "/file/${message.address}", true)
+            xhr.open("GET", "http://localhost:8800/file/${message.address}", true)
             xhr.onload = {
                 if (xhr.status.toInt() == 200) {
                     val buffer = xhr.response as ArrayBuffer
@@ -198,6 +198,7 @@ class MessageView(
     own: Boolean
 ) : View {
     override val root = div {
+        val container = this
         if (own) {
             clazz("message-container", "message-own")
         } else {
@@ -216,20 +217,77 @@ class MessageView(
                     text(timeFormat(message.date))
                 }
             }
-            is EncryptedFileMessage -> div {
-                clazz("message")
-                div {
-                    clazz("message-image")
-                    img {
-                        controller.download(content, own).then {
-                            onload {
-                                URL.revokeObjectURL(src)
+            is EncryptedFileMessage ->
+                when {
+                    content.mimetype.startsWith("image/") -> {
+                        div {
+                            clazz("message-image")
+                            img {
+                                container.hide()
+                                controller.download(content, own).then {
+                                    onload {
+                                        URL.revokeObjectURL(src)
+                                        container.show()
+                                    }
+                                    src = URL.createObjectURL(it)
+                                }
                             }
-                            src = URL.createObjectURL(it)
+                        }
+                    }
+                    else -> {
+                        console.log(content)
+                        div {
+                            clazz("message")
+                            div {
+                                clazz("message-file")
+                                div {
+                                    clazz("files-icon-container")
+                                    div {
+                                        clazz("file-icon")
+                                        text(content.name.split('.').last())
+                                    }
+                                }
+                                div {
+                                    clazz("message-file-info")
+                                    div {
+                                        clazz("file-name")
+                                        text(content.name)
+                                    }
+                                    div {
+                                        clazz("file-mimetype")
+                                        text(content.mimetype)
+                                    }
+                                    div {
+                                        clazz("file-size")
+                                        text("${content.size} bytes")
+                                    }
+                                }
+                                div {
+                                    clazz("message-file-actions")
+                                    val link = a { hide() }
+                                    button {
+                                        type("button")
+                                        clazz("btn")
+                                        text("Download")
+                                        onclick {
+                                            controller.download(content, own).then {
+                                                link.href = URL.createObjectURL(it)
+                                                link.download = content.name
+                                                link.element.asDynamic().click()
+                                                URL.revokeObjectURL(link.href)
+                                                link.href = "#"
+                                            }
+                                        }
+                                    }
+                                }
+                                div {
+                                    clazz("message-time")
+                                    text(timeFormat(message.date))
+                                }
+                            }
                         }
                     }
                 }
-            }
         }
     }
 

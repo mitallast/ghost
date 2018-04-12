@@ -54,10 +54,10 @@ object FilesDropController {
                 val file = files[0]!! // @todo multiple
                 if (file.type.startsWith("image/")) {
                     console.info("view as image")
-                    view(FilesDropImage(file))
+                    view(FilesDropImagePreview(file))
                 } else {
-                    // @todo
-                    console.warn("unsupported")
+                    console.info("view as file")
+                    view(FilesDropPreview(file))
                 }
             } else {
                 console.warn("empty files")
@@ -79,6 +79,21 @@ object FilesDropView : View {
 
     override val root = div {
         clazz("files-drop-container")
+        appendToBody()
+    }
+
+    fun hide(view: View) {
+        root.remove(view.root)
+    }
+
+    fun view(view: View) {
+        root.append(view.root)
+    }
+}
+
+object FilesDropBox : View {
+    override val root = div {
+        clazz("files-drop-box")
 
         on("dragover", { e ->
             e.stopPropagation()
@@ -107,28 +122,12 @@ object FilesDropView : View {
                 console.log("unsupported drop event", e)
             }
         })
-
-        appendToBody()
-    }
-
-    fun hide(view: View) {
-        root.remove(view.root)
-    }
-
-    fun view(view: View) {
-        root.append(view.root)
     }
 }
 
-object FilesDropBox : View {
+class FilesDropImagePreview(private val file: File) : View {
     override val root = div {
-        clazz("files-drop-box")
-    }
-}
-
-class FilesDropImage(private val file: File) : View {
-    override val root = div {
-        clazz("files-drop-image-box")
+        clazz("files-drop-preview")
         div {
             clazz("files-drop-image")
             img {
@@ -137,7 +136,7 @@ class FilesDropImage(private val file: File) : View {
             }
         }
         div {
-            clazz("files-drop-button")
+            clazz("files-drop-actions")
             span {
                 clazz("file-name")
                 text(file.name)
@@ -157,6 +156,67 @@ class FilesDropImage(private val file: File) : View {
                 onclick { e ->
                     e.preventDefault()
                     FilesDropController.send(file)
+                }
+            }
+            button {
+                clazz("btn")
+                type("button")
+                text("Cancel")
+                onclick { e ->
+                    e.preventDefault()
+                    FilesDropController.hide()
+                }
+            }
+        }
+    }
+}
+
+class FilesDropPreview(private val file: File) : View {
+    override val root = div {
+        clazz("files-drop-preview")
+        div {
+            clazz("files-info-container")
+            div {
+                clazz("files-icon-container")
+                div {
+                    clazz("file-icon")
+                    text(file.name.split('.').last())
+                }
+            }
+            div {
+                clazz("files-info")
+                div {
+                    clazz("file-name")
+                    text(file.name)
+                }
+                div {
+                    clazz("file-mimetype")
+                    text(file.type)
+                }
+                div {
+                    clazz("file-size")
+                    text("${file.size} bytes")
+                }
+            }
+        }
+        div {
+            clazz("files-drop-actions")
+            button {
+                clazz("btn")
+                type("button")
+                text("Upload")
+                onclick { e ->
+                    e.preventDefault()
+                    FilesDropController.send(file)
+                }
+            }
+            button {
+                clazz("btn")
+                type("button")
+                text("Cancel")
+                onclick { e ->
+                    e.preventDefault()
+                    FilesDropController.hide()
                 }
             }
         }

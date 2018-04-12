@@ -470,12 +470,32 @@ ul, li, p, h1, h2, h3, h4 {
 }
 
 .message-image {
-    max-width: 500px;
+    display: flex;
 }
 
 .message-image > img {
-    max-width: 100%;
-    max-height: 100%;
+    align-self: center;
+    flex: 0 0 auto;
+    max-width: 500px;
+    max-height: 400px;
+}
+
+.message-file {
+    display: flex;
+    flex-direction: row;
+    padding: 5px 15px 15px 5px;
+}
+
+.message-file-info {
+    padding: 18px 5px 0 5px;
+}
+
+.message-file-actions {
+    padding-top: 12px;
+}
+
+.message-file-actions .btn {
+    background: none;
 }
 
 .content-footer {

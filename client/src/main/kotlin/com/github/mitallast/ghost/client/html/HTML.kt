@@ -150,7 +150,18 @@ class G() : SVGElement("g")
 class SVG() : SVGElement("svg")
 
 class DIV() : HTMLElement("div")
-class A() : HTMLElement("a")
+class A() : HTMLElement("a") {
+    var href: String
+        get() = element.asDynamic().href as String
+        set(value) {
+            element.asDynamic().href = value
+        }
+    var download: String
+        get() = element.asDynamic().download as String
+        set(value) {
+            element.asDynamic().download = value
+        }
+}
 class H2() : HTMLElement("h2")
 class H3() : HTMLElement("h3")
 class H4() : HTMLElement("h4")
