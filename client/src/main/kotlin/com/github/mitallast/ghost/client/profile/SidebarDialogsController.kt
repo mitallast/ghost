@@ -8,6 +8,7 @@ import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.view.ScrollView
 import com.github.mitallast.ghost.client.view.SidebarController
 import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.message.EncryptedFileMessage
 import com.github.mitallast.ghost.message.Message
 import com.github.mitallast.ghost.message.ServiceMessage
 import com.github.mitallast.ghost.message.TextMessage
@@ -55,7 +56,6 @@ object SidebarDialogsView : View {
 }
 
 class SidebarDialogView(profile: UserProfile) {
-    private val id = profile.id
     private val dateText = text("00:00")
     private val messageText = text("...")
     private val fullnameText = text(profile.fullname)
@@ -67,12 +67,12 @@ class SidebarDialogView(profile: UserProfile) {
     }
 
     fun update(message: Message) {
-//        console.log("last ${timeFormat(message.date)}:${message.randomId}")
         dateText.text(timeFormat(message.date))
         val content = message.content
         when (content) {
             is TextMessage -> messageText.text(content.text.substring(0, 32))
             is ServiceMessage -> messageText.text(content.text.substring(0, 32))
+            is EncryptedFileMessage -> messageText.text(content.name.substring(0, 32))
             else -> messageText.text("...")
         }
     }

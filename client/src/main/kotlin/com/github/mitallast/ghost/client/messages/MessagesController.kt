@@ -232,6 +232,10 @@ class MessageView(
                                     src = URL.createObjectURL(it)
                                 }
                             }
+                            div {
+                                clazz("message-time")
+                                text(timeFormat(message.date))
+                            }
                         }
                     }
                     else -> {
