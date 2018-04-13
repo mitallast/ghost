@@ -6,9 +6,9 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.crypto.crypto
 import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.e2e.E2EDHFlow
-import com.github.mitallast.ghost.client.files.await
 import com.github.mitallast.ghost.client.files.FilesDropController
 import com.github.mitallast.ghost.client.files.FilesDropHandler
+import com.github.mitallast.ghost.client.files.await
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.ProfileController
 import com.github.mitallast.ghost.client.profile.SidebarDialogsController
@@ -95,9 +95,12 @@ class MessagesListController(private val self: UserProfile, private val profile:
             val reader = FileReader()
             reader.readAsArrayBuffer(file)
             val buffer = reader.await<ArrayBuffer>()
-            val encrypted = E2EDHFlow.encrypt(profile.id, buffer)
+            val (params, encrypted) = E2EDHFlow.encryptRaw(profile.id, buffer)
             val xhr = XMLHttpRequest()
             xhr.open("POST", "http://localhost:8800/file/upload", true)
+            xhr.setRequestHeader("x-address", HEX.toHex(self.id))
+            xhr.setRequestHeader("x-sign", HEX.toHex(params.first))
+            xhr.setRequestHeader("x-iv", HEX.toHex(params.second))
             xhr.onload = {
                 if (xhr.status.toInt() == 200) {
                     val address = xhr.responseText
@@ -107,15 +110,15 @@ class MessagesListController(private val self: UserProfile, private val profile:
                         file.size,
                         file.type,
                         address,
-                        encrypted.sign,
-                        encrypted.iv
+                        params.first,
+                        params.second
                     )
                     launch { send(fileMeta) }
                 } else {
                     console.error("upload error", it, xhr)
                 }
             }
-            xhr.send(encrypted.encrypted)
+            xhr.send(encrypted)
         }
     }
 

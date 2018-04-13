@@ -6,6 +6,8 @@ import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.DERSequence
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
+import java.io.File
+import java.io.FileInputStream
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.math.BigInteger
@@ -129,6 +131,21 @@ object ECDSA {
         return signSignature.verify(sign)
     }
 
+    fun verify(publicKey: PublicKey, sign: ByteArray, file: File): Boolean {
+        val signSignature = Signature.getInstance(ECDHParams.ECC_SIGNATURE, ECDHParams.PROVIDER)
+        signSignature.initVerify(publicKey)
+        FileInputStream(file).use { stream ->
+            val buffer = ByteArray(4096)
+            do {
+                val len = stream.read(buffer)
+                if(len > 0) {
+                    signSignature.update(buffer, 0, len)
+                }
+            } while (len > 0)
+        }
+        return signSignature.verify(sign)
+    }
+
     /**
      * 0000000 b6 07 b4 29 ed 5d e1 92 53 4d a2 0d f8 6f 3b f6
      * 0000010 a5 b8 bb d6 48 7d 86 2f 09 23 68 62 3a 67 6e 0e
@@ -221,7 +238,7 @@ object ECDH {
 object AES {
     fun iv(): ByteArray {
         val iv = ByteArray(ECDHParams.AES_GCM_IV_LENGTH)
-        SecureRandom.getInstance("NativePRNG").nextBytes(iv)
+        SecureRandom.getInstance("SHA1PRNG").nextBytes(iv)
         return iv
     }
 

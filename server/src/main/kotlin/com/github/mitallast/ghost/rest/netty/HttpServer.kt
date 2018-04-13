@@ -11,11 +11,12 @@ class HttpServer @Inject constructor(
     config: Config,
     provider: NettyProvider,
     private val serverHandler: HttpServerHandler,
+    private val uploadHandler: HttpServerUploadHandler,
     private val webSocketFrameHandler: WebSocketFrameHandler
 ) :
     NettyServer(config, provider, config.getString("rest.host"), config.getInt("rest.port")) {
 
     override fun channelInitializer(): ChannelInitializer<SocketChannel> {
-        return HttpServerInitializer(serverHandler, webSocketFrameHandler)
+        return HttpServerInitializer(serverHandler, uploadHandler, webSocketFrameHandler)
     }
 }

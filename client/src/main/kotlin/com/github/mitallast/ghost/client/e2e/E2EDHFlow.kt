@@ -169,6 +169,20 @@ object E2EDHFlow {
         )
     }
 
+    suspend fun encryptRaw(to: ByteArray, data: ArrayBuffer): Pair<Pair<ByteArray, ByteArray>, ArrayBuffer> {
+        console.log("load e2e address", HEX.toHex(to))
+        val auth = E2EAuthStore.load(to)!!
+        console.log("e2e aes encrypt")
+        val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
+        val buffer = toArrayBuffer(iv.buffer, data)
+        console.log("e2e ecdsa sign")
+        val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
+        return Pair(
+            Pair(toByteArray(sign), toByteArray(iv.buffer)),
+            encrypted
+        )
+    }
+
     suspend fun decrypt(from: ByteArray, encrypted: E2EEncrypted): ArrayBuffer {
         val auth = E2EAuthStore.load(from)!!
         val data = toArrayBuffer(encrypted.encrypted)
