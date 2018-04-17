@@ -9,6 +9,12 @@ object HashSHA1 : Hash("SHA-1")
 object HashSHA256 : Hash("SHA-256")
 object HashSHA512 : Hash("SHA-512")
 
+object SHA1 {
+    fun digest(data: ArrayBuffer): Promise<ArrayBuffer> {
+        return crypto.subtle.digest(json(Pair("name", "SHA-1")), data)
+    }
+}
+
 object SHA256 {
     fun digest(data: ArrayBuffer): Promise<ArrayBuffer> {
         return crypto.subtle.digest(json(Pair("name", "SHA-256")), data)

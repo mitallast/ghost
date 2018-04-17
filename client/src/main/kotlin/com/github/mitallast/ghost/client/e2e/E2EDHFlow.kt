@@ -10,6 +10,12 @@ import com.github.mitallast.ghost.e2e.E2EEncrypted
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
+class E2EEncryptedFile(
+    val sign: ArrayBuffer,
+    val iv: ArrayBuffer,
+    val encrypted: ArrayBuffer
+)
+
 object E2EDHFlow {
     suspend fun cancelRequest(to: ByteArray) {
         E2EIncomingRequestStore.remove(to)
@@ -136,7 +142,7 @@ object E2EDHFlow {
         val buffer = toArrayBuffer(ecdh, ecdsa, response.iv, decrypted)
         val sign = toArrayBuffer(response.sign)
         val verified = ECDSA.verify(HashSHA512, response.ecdsaPublicKey, sign, buffer).await()
-        if(!verified) {
+        if (!verified) {
             throw IllegalArgumentException("e2e decrypt: sign not verified")
         }
 
@@ -169,20 +175,6 @@ object E2EDHFlow {
         )
     }
 
-    suspend fun encryptRaw(to: ByteArray, data: ArrayBuffer): Pair<Pair<ByteArray, ByteArray>, ArrayBuffer> {
-        console.log("load e2e address", HEX.toHex(to))
-        val auth = E2EAuthStore.load(to)!!
-        console.log("e2e aes encrypt")
-        val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
-        val buffer = toArrayBuffer(iv.buffer, data)
-        console.log("e2e ecdsa sign")
-        val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
-        return Pair(
-            Pair(toByteArray(sign), toByteArray(iv.buffer)),
-            encrypted
-        )
-    }
-
     suspend fun decrypt(from: ByteArray, encrypted: E2EEncrypted): ArrayBuffer {
         val auth = E2EAuthStore.load(from)!!
         val data = toArrayBuffer(encrypted.encrypted)
@@ -198,25 +190,34 @@ object E2EDHFlow {
         }
     }
 
-    suspend fun decrypt(from: ByteArray,
-                        to: ByteArray,
-                        sign: ByteArray,
-                        iv: ByteArray,
-                        data: ArrayBuffer,
-                        own: Boolean): ArrayBuffer {
-        val auth = E2EAuthStore.load(from)!!
+    suspend fun encryptFile(address: ByteArray, data: ArrayBuffer): E2EEncryptedFile {
+        val auth = E2EAuthStore.load(address)!!
+        val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
+        val sha1 = SHA1.digest(data).await()
+        val buffer = toArrayBuffer(iv.buffer, sha1)
+        val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
+        return E2EEncryptedFile(sign, iv.buffer, encrypted)
+    }
+
+    suspend fun decryptFile(address: ByteArray,
+                            sign: ByteArray,
+                            iv: ByteArray,
+                            data: ArrayBuffer,
+                            own: Boolean): ArrayBuffer {
+        val auth = E2EAuthStore.load(address)!!
         val ivB = Uint8Array(toArrayBuffer(iv))
         val signB = toArrayBuffer(sign)
         val decrypted = AES.decrypt(auth.secretKey, data, ivB).await()
+        val sha1 = SHA1.digest(decrypted).await()
+        val buffer = toArrayBuffer(iv, sha1)
         val verified = if (own) {
-            val buffer = toArrayBuffer(to, iv, decrypted)
             val publicKey = ECDSA.toPublicKey(CurveP384, auth.privateKey)
             ECDSA.verify(HashSHA512, publicKey, signB, buffer).await()
         } else {
-            val buffer = toArrayBuffer(from, iv, decrypted)
             ECDSA.verify(HashSHA512, auth.publicKey, signB, buffer).await()
         }
         if (verified) {
+            console.log("file verified")
             return decrypted
         } else {
             throw IllegalArgumentException("e2e decrypt: sign not verified")

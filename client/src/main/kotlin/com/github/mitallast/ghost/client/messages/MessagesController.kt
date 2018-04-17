@@ -1,8 +1,10 @@
 package com.github.mitallast.ghost.client.messages
 
+import com.github.mitallast.ghost.client.common.await
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
+import com.github.mitallast.ghost.client.crypto.SHA1
 import com.github.mitallast.ghost.client.crypto.crypto
 import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.e2e.E2EDHFlow
@@ -95,12 +97,12 @@ class MessagesListController(private val self: UserProfile, private val profile:
             val reader = FileReader()
             reader.readAsArrayBuffer(file)
             val buffer = reader.await<ArrayBuffer>()
-            val (params, encrypted) = E2EDHFlow.encryptRaw(profile.id, buffer)
+            val encrypted = E2EDHFlow.encryptFile(profile.id, buffer)
+            val sha1 = SHA1.digest(encrypted.encrypted).await()
+            console.log("encrypted", encrypted, buffer)
             val xhr = XMLHttpRequest()
             xhr.open("POST", "http://localhost:8800/file/upload", true)
-            xhr.setRequestHeader("x-address", HEX.toHex(self.id))
-            xhr.setRequestHeader("x-sign", HEX.toHex(params.first))
-            xhr.setRequestHeader("x-iv", HEX.toHex(params.second))
+            xhr.setRequestHeader("x-sha1", HEX.toHex(sha1))
             xhr.onload = {
                 if (xhr.status.toInt() == 200) {
                     val address = xhr.responseText
@@ -110,15 +112,15 @@ class MessagesListController(private val self: UserProfile, private val profile:
                         file.size,
                         file.type,
                         address,
-                        params.first,
-                        params.second
+                        toByteArray(encrypted.sign),
+                        toByteArray(encrypted.iv)
                     )
                     launch { send(fileMeta) }
                 } else {
                     console.error("upload error", it, xhr)
                 }
             }
-            xhr.send(encrypted)
+            xhr.send(encrypted.encrypted)
         }
     }
 
@@ -132,7 +134,7 @@ class MessagesListController(private val self: UserProfile, private val profile:
                 if (xhr.status.toInt() == 200) {
                     val buffer = xhr.response as ArrayBuffer
                     launch {
-                        val decrypted = E2EDHFlow.decrypt(profile.id, self.id, message.sign, message.iv, buffer, own)
+                        val decrypted = E2EDHFlow.decryptFile(profile.id, message.sign, message.iv, buffer, own)
                         val blob = Blob(arrayOf(decrypted), BlobPropertyBag(type = message.mimetype))
                         console.info("success download")
                         resolve.invoke(blob)
@@ -226,11 +228,11 @@ class MessageView(
                         div {
                             clazz("message-image")
                             img {
-                                container.hide()
+                                hide()
                                 controller.download(content, own).then {
                                     onload {
                                         URL.revokeObjectURL(src)
-                                        container.show()
+                                        show()
                                     }
                                     src = URL.createObjectURL(it)
                                 }

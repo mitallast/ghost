@@ -20,7 +20,7 @@ class HttpServerInitializer(
     private val group = DefaultEventExecutorGroup(1);
     private val corsConfig = CorsConfigBuilder
         .forAnyOrigin()
-        .allowedRequestHeaders("x-address", "x-sign", "x-iv")
+        .allowedRequestHeaders("x-sha1")
         .build()
 
     override fun initChannel(ch: SocketChannel) {

@@ -5,7 +5,6 @@ import com.github.mitallast.ghost.common.crypto.ECDH
 import com.github.mitallast.ghost.common.crypto.ECDSA
 import com.google.inject.Inject
 import com.typesafe.config.Config
-import java.io.File
 import java.lang.IllegalArgumentException
 import javax.xml.bind.DatatypeConverter.parseHexBinary
 
@@ -71,11 +70,5 @@ class ECDHService @Inject constructor(
             throw IllegalArgumentException("not verified")
         }
         return decrypted
-    }
-
-    fun validateFile(address: ByteArray, sign: ByteArray, iv: ByteArray, file: File): Boolean {
-        val ecdsa = authStore.loadPublicECDSA(address)
-        val signDER = ECDSA.raw2der(sign)
-        return ECDSA.verify(ecdsa, signDER, file)
     }
 }
