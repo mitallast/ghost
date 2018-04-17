@@ -18,9 +18,9 @@ class ECDHRequest(
             ECDHRequest::ecdhPublicKey,
             ECDHRequest::ecdsaPublicKey,
             ECDHRequest::sign,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec())
         )
     }
 }
@@ -40,9 +40,9 @@ class ECDHResponse(
             ECDHResponse::auth,
             ECDHResponse::ecdhPublicKey,
             ECDHResponse::sign,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec())
         )
     }
 }
@@ -60,8 +60,8 @@ class ECDHReconnect(
             ::ECDHReconnect,
             ECDHReconnect::auth,
             ECDHReconnect::sign,
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec())
         )
     }
 }
@@ -83,10 +83,10 @@ class ECDHEncrypted(
             ECDHEncrypted::sign,
             ECDHEncrypted::iv,
             ECDHEncrypted::encrypted,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec()),
+            Codec.field(4, Codec.bytesCodec())
         )
     }
 }

@@ -8,17 +8,7 @@ import com.github.mitallast.ghost.updates.*
 import com.github.mitallast.ghost.message.*
 import com.github.mitallast.ghost.profile.UserProfile
 
-
 object Registry {
-    object mask {
-        const val ecdh = 0x0100
-        const val e2e = 0x0200
-        const val update = 0x0300
-        const val profile = 0x0400
-        const val files = 0x0500
-        const val message = 0x0600
-    }
-
     fun register() {
         Codec.register(ECDHRequest.messageId, ECDHRequest.codec)
         Codec.register(ECDHResponse.messageId, ECDHResponse.codec)

@@ -24,10 +24,10 @@ class Message(
             Message::randomId,
             Message::sender,
             Message::content,
-            Codec.longCodec(),
-            Codec.longCodec(),
-            Codec.bytesCodec(),
-            Codec.anyCodec()
+            Codec.field(1, Codec.longCodec()),
+            Codec.field(2, Codec.longCodec()),
+            Codec.field(3, Codec.bytesCodec()),
+            Codec.field(4, Codec.anyCodec())
         )
     }
 }
@@ -42,7 +42,7 @@ class TextMessage(val text: String) : MessageContent {
         val codec = Codec.of(
             ::TextMessage,
             TextMessage::text,
-            Codec.stringCodec()
+            Codec.field(1, Codec.stringCodec())
         )
     }
 }
@@ -55,7 +55,7 @@ class ServiceMessage(val text: String) : MessageContent {
         val codec = Codec.of(
             ::ServiceMessage,
             ServiceMessage::text,
-            Codec.stringCodec()
+            Codec.field(1, Codec.stringCodec())
         )
     }
 }
@@ -81,12 +81,12 @@ class EncryptedFileMessage(
             EncryptedFileMessage::address,
             EncryptedFileMessage::sign,
             EncryptedFileMessage::iv,
-            Codec.stringCodec(),
-            Codec.intCodec(),
-            Codec.stringCodec(),
-            Codec.stringCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.stringCodec()),
+            Codec.field(2, Codec.intCodec()),
+            Codec.field(3, Codec.stringCodec()),
+            Codec.field(4, Codec.stringCodec()),
+            Codec.field(5, Codec.bytesCodec()),
+            Codec.field(6, Codec.bytesCodec())
         )
     }
 }

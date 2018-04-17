@@ -20,10 +20,10 @@ class UserProfile(
             UserProfile::fullname,
             UserProfile::nickname,
             UserProfile::avatar,
-            Codec.bytesCodec(),
-            Codec.stringCodec(),
-            Codec.stringCodec(),
-            Codec.optionCodec(Thumb.codec)
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.stringCodec()),
+            Codec.field(3, Codec.stringCodec()),
+            Codec.optional(4, Thumb.codec)
         )
     }
 }

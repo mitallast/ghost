@@ -40,9 +40,9 @@ class E2EAuthRequest(
             E2EAuthRequest::ecdhPublicKey,
             E2EAuthRequest::ecdsaPublicKey,
             E2EAuthRequest::sign,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec())
         )
     }
 }
@@ -66,11 +66,11 @@ class E2EAuthResponse(
             E2EAuthResponse::sign,
             E2EAuthResponse::iv,
             E2EAuthResponse::encrypted,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec()),
+            Codec.field(4, Codec.bytesCodec()),
+            Codec.field(5, Codec.bytesCodec())
         )
     }
 }
@@ -90,9 +90,9 @@ class E2EEncrypted(
             E2EEncrypted::sign,
             E2EEncrypted::iv,
             E2EEncrypted::encrypted,
-            Codec.bytesCodec(),
-            Codec.bytesCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.bytesCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.bytesCodec())
         )
     }
 }

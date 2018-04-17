@@ -17,9 +17,9 @@ class Thumb(
             Thumb::width,
             Thumb::height,
             Thumb::thumb,
-            Codec.intCodec(),
-            Codec.intCodec(),
-            Codec.bytesCodec()
+            Codec.field(1, Codec.intCodec()),
+            Codec.field(2, Codec.intCodec()),
+            Codec.field(3, Codec.bytesCodec())
         )
     }
 }

@@ -17,9 +17,9 @@ class Update(
             Update::sequence,
             Update::from,
             Update::update,
-            Codec.longCodec(),
-            Codec.bytesCodec(),
-            Codec.anyCodec()
+            Codec.field(1, Codec.longCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.anyCodec())
         )
     }
 }
@@ -32,7 +32,7 @@ class InstallUpdate(val updates: List<Update>) : CodecMessage {
         val codec = Codec.of(
             ::InstallUpdate,
             InstallUpdate::updates,
-            Codec.listCodec(Update.codec)
+            Codec.field(1, Codec.listCodec(Update.codec))
         )
     }
 }
@@ -45,7 +45,7 @@ class UpdateInstalled(val last: Long) : CodecMessage {
         val codec = Codec.of(
             ::UpdateInstalled,
             UpdateInstalled::last,
-            Codec.longCodec()
+            Codec.field(1, Codec.longCodec())
         )
     }
 }
@@ -58,7 +58,7 @@ class UpdateRejected(val last: Long) : CodecMessage {
         val codec = Codec.of(
             ::UpdateRejected,
             UpdateRejected::last,
-            Codec.longCodec()
+            Codec.field(1, Codec.longCodec())
         )
     }
 }
@@ -77,9 +77,9 @@ class SendUpdate(
             SendUpdate::randomId,
             SendUpdate::address,
             SendUpdate::message,
-            Codec.longCodec(),
-            Codec.bytesCodec(),
-            Codec.anyCodec()
+            Codec.field(1, Codec.longCodec()),
+            Codec.field(2, Codec.bytesCodec()),
+            Codec.field(3, Codec.anyCodec())
         )
     }
 }
@@ -92,7 +92,7 @@ class SendAck(val randomId: Long) : CodecMessage {
         val codec = Codec.of(
             ::SendAck,
             SendAck::randomId,
-            Codec.longCodec()
+            Codec.field(1, Codec.longCodec())
         )
     }
 }
