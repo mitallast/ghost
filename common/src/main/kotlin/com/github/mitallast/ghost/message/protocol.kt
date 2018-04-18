@@ -2,6 +2,7 @@ package com.github.mitallast.ghost.message
 
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
+import com.github.mitallast.ghost.files.EncryptedFile
 
 class Message(
     val date: Long,
@@ -60,33 +61,15 @@ class ServiceMessage(val text: String) : MessageContent {
     }
 }
 
-class EncryptedFileMessage(
-    val name: String,
-    val size: Int,
-    val mimetype: String,
-    val address: String,
-    val sign: ByteArray,
-    val iv: ByteArray
-) : MessageContent {
-
+class FileMessage(val file: EncryptedFile) : MessageContent {
     override fun messageId(): Int = messageId
 
     companion object {
         const val messageId = 0x0603
         val codec = Codec.of(
-            ::EncryptedFileMessage,
-            EncryptedFileMessage::name,
-            EncryptedFileMessage::size,
-            EncryptedFileMessage::mimetype,
-            EncryptedFileMessage::address,
-            EncryptedFileMessage::sign,
-            EncryptedFileMessage::iv,
-            Codec.field(1, Codec.stringCodec()),
-            Codec.field(2, Codec.intCodec()),
-            Codec.field(3, Codec.stringCodec()),
-            Codec.field(4, Codec.stringCodec()),
-            Codec.field(5, Codec.bytesCodec()),
-            Codec.field(6, Codec.bytesCodec())
+            ::FileMessage,
+            FileMessage::file,
+            Codec.field(1, EncryptedFile.codec)
         )
     }
 }

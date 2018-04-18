@@ -8,10 +8,7 @@ import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.view.ScrollView
 import com.github.mitallast.ghost.client.view.SidebarController
 import com.github.mitallast.ghost.client.view.View
-import com.github.mitallast.ghost.message.EncryptedFileMessage
-import com.github.mitallast.ghost.message.Message
-import com.github.mitallast.ghost.message.ServiceMessage
-import com.github.mitallast.ghost.message.TextMessage
+import com.github.mitallast.ghost.message.*
 import com.github.mitallast.ghost.profile.UserProfile
 import kotlin.js.Date
 
@@ -72,7 +69,7 @@ class SidebarDialogView(profile: UserProfile) {
         when (content) {
             is TextMessage -> messageText.text(content.text.substring(0, 32))
             is ServiceMessage -> messageText.text(content.text.substring(0, 32))
-            is EncryptedFileMessage -> messageText.text(content.name.substring(0, 32))
+            is FileMessage -> messageText.text(content.file.name.substring(0, 32))
             else -> messageText.text("...")
         }
     }

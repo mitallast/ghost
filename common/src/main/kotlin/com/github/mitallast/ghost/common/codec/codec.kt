@@ -153,6 +153,52 @@ interface Codec<T> {
                 lens1, lens2, lens3, lens4, lens5, lens6,
                 codec1, codec2, codec3, codec4, codec5, codec6)
         }
+
+        fun <Type, Param1, Param2, Param3, Param4, Param5, Param6, Param7> of(
+            builder: Function7<Param1, Param2, Param3, Param4, Param5, Param6, Param7, Type>,
+            lens1: Function1<Type, Param1>,
+            lens2: Function1<Type, Param2>,
+            lens3: Function1<Type, Param3>,
+            lens4: Function1<Type, Param4>,
+            lens5: Function1<Type, Param5>,
+            lens6: Function1<Type, Param6>,
+            lens7: Function1<Type, Param7>,
+            codec1: FieldCodec<Param1>,
+            codec2: FieldCodec<Param2>,
+            codec3: FieldCodec<Param3>,
+            codec4: FieldCodec<Param4>,
+            codec5: FieldCodec<Param5>,
+            codec6: FieldCodec<Param6>,
+            codec7: FieldCodec<Param7>
+        ): Codec<Type> {
+            return Codec7(builder,
+                lens1, lens2, lens3, lens4, lens5, lens6, lens7,
+                codec1, codec2, codec3, codec4, codec5, codec6, codec7)
+        }
+
+        fun <Type, Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8> of(
+            builder: Function8<Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8, Type>,
+            lens1: Function1<Type, Param1>,
+            lens2: Function1<Type, Param2>,
+            lens3: Function1<Type, Param3>,
+            lens4: Function1<Type, Param4>,
+            lens5: Function1<Type, Param5>,
+            lens6: Function1<Type, Param6>,
+            lens7: Function1<Type, Param7>,
+            lens8: Function1<Type, Param8>,
+            codec1: FieldCodec<Param1>,
+            codec2: FieldCodec<Param2>,
+            codec3: FieldCodec<Param3>,
+            codec4: FieldCodec<Param4>,
+            codec5: FieldCodec<Param5>,
+            codec6: FieldCodec<Param6>,
+            codec7: FieldCodec<Param7>,
+            codec8: FieldCodec<Param8>
+        ): Codec<Type> {
+            return Codec8(builder,
+                lens1, lens2, lens3, lens4, lens5, lens6, lens7, lens8,
+                codec1, codec2, codec3, codec4, codec5, codec6, codec7, codec8)
+        }
     }
 }
 
@@ -762,6 +808,96 @@ internal class Codec6<Type, Param1, Param2, Param3, Param4, Param5, Param6>(
         codec4.write(stream, lens4.invoke(value))
         codec5.write(stream, lens5.invoke(value))
         codec6.write(stream, lens6.invoke(value))
+        stream.write(PrimitiveTag.OBJECT_END)
+    }
+}
+
+internal class Codec7<Type, Param1, Param2, Param3, Param4, Param5, Param6, Param7>(
+    private val builder: Function7<Param1, Param2, Param3, Param4, Param5, Param6, Param7, Type>,
+    private val lens1: Function1<Type, Param1>,
+    private val lens2: Function1<Type, Param2>,
+    private val lens3: Function1<Type, Param3>,
+    private val lens4: Function1<Type, Param4>,
+    private val lens5: Function1<Type, Param5>,
+    private val lens6: Function1<Type, Param6>,
+    private val lens7: Function1<Type, Param7>,
+    private val codec1: FieldCodec<Param1>,
+    private val codec2: FieldCodec<Param2>,
+    private val codec3: FieldCodec<Param3>,
+    private val codec4: FieldCodec<Param4>,
+    private val codec5: FieldCodec<Param5>,
+    private val codec6: FieldCodec<Param6>,
+    private val codec7: FieldCodec<Param7>
+) : Codec<Type> {
+    override val tag: Int = PrimitiveTag.OBJECT
+
+    override fun read(stream: InputStream): Type {
+        val (last1, param1) = codec1.read(stream)
+        val (last2, param2) = codec2.read(last1, stream)
+        val (last3, param3) = codec3.read(last2, stream)
+        val (last4, param4) = codec4.read(last3, stream)
+        val (last5, param5) = codec5.read(last4, stream)
+        val (last6, param6) = codec6.read(last5, stream)
+        val (last7, param7) = codec7.read(last6, stream)
+        SkipCodec.skipObject(last7, stream)
+        return builder.invoke(param1, param2, param3, param4, param5, param6, param7)
+    }
+
+    override fun write(stream: OutputStream, value: Type) {
+        codec1.write(stream, lens1.invoke(value))
+        codec2.write(stream, lens2.invoke(value))
+        codec3.write(stream, lens3.invoke(value))
+        codec4.write(stream, lens4.invoke(value))
+        codec5.write(stream, lens5.invoke(value))
+        codec6.write(stream, lens6.invoke(value))
+        codec7.write(stream, lens7.invoke(value))
+        stream.write(PrimitiveTag.OBJECT_END)
+    }
+}
+
+internal class Codec8<Type, Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8>(
+    private val builder: Function8<Param1, Param2, Param3, Param4, Param5, Param6, Param7, Param8, Type>,
+    private val lens1: Function1<Type, Param1>,
+    private val lens2: Function1<Type, Param2>,
+    private val lens3: Function1<Type, Param3>,
+    private val lens4: Function1<Type, Param4>,
+    private val lens5: Function1<Type, Param5>,
+    private val lens6: Function1<Type, Param6>,
+    private val lens7: Function1<Type, Param7>,
+    private val lens8: Function1<Type, Param8>,
+    private val codec1: FieldCodec<Param1>,
+    private val codec2: FieldCodec<Param2>,
+    private val codec3: FieldCodec<Param3>,
+    private val codec4: FieldCodec<Param4>,
+    private val codec5: FieldCodec<Param5>,
+    private val codec6: FieldCodec<Param6>,
+    private val codec7: FieldCodec<Param7>,
+    private val codec8: FieldCodec<Param8>
+) : Codec<Type> {
+    override val tag: Int = PrimitiveTag.OBJECT
+
+    override fun read(stream: InputStream): Type {
+        val (last1, param1) = codec1.read(stream)
+        val (last2, param2) = codec2.read(last1, stream)
+        val (last3, param3) = codec3.read(last2, stream)
+        val (last4, param4) = codec4.read(last3, stream)
+        val (last5, param5) = codec5.read(last4, stream)
+        val (last6, param6) = codec6.read(last5, stream)
+        val (last7, param7) = codec7.read(last6, stream)
+        val (last8, param8) = codec8.read(last7, stream)
+        SkipCodec.skipObject(last8, stream)
+        return builder.invoke(param1, param2, param3, param4, param5, param6, param7, param8)
+    }
+
+    override fun write(stream: OutputStream, value: Type) {
+        codec1.write(stream, lens1.invoke(value))
+        codec2.write(stream, lens2.invoke(value))
+        codec3.write(stream, lens3.invoke(value))
+        codec4.write(stream, lens4.invoke(value))
+        codec5.write(stream, lens5.invoke(value))
+        codec6.write(stream, lens6.invoke(value))
+        codec7.write(stream, lens7.invoke(value))
+        codec8.write(stream, lens8.invoke(value))
         stream.write(PrimitiveTag.OBJECT_END)
     }
 }

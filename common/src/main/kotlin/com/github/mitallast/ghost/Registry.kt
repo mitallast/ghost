@@ -30,10 +30,11 @@ object Registry {
         Codec.register(UserProfile.messageId, UserProfile.codec)
 
         Codec.register(Thumb.messageId, Thumb.codec)
+        Codec.register(EncryptedFile.messageId, EncryptedFile.codec)
 
         Codec.register(Message.messageId, Message.codec)
         Codec.register(TextMessage.messageId, TextMessage.codec)
         Codec.register(ServiceMessage.messageId, ServiceMessage.codec)
-        Codec.register(EncryptedFileMessage.messageId, EncryptedFileMessage.codec)
+        Codec.register(FileMessage.messageId, FileMessage.codec)
     }
 }
