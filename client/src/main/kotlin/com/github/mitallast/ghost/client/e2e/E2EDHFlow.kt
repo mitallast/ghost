@@ -10,12 +10,6 @@ import com.github.mitallast.ghost.e2e.E2EEncrypted
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 
-class E2EEncryptedFile(
-    val sign: ArrayBuffer,
-    val iv: ArrayBuffer,
-    val encrypted: ArrayBuffer
-)
-
 object E2EDHFlow {
     suspend fun cancelRequest(to: ByteArray) {
         E2EIncomingRequestStore.remove(to)
@@ -184,40 +178,6 @@ object E2EDHFlow {
         val buffer = toArrayBuffer(encrypted.iv, decrypted)
         val verified = ECDSA.verify(HashSHA512, auth.publicKey, sign, buffer).await()
         if (verified) {
-            return decrypted
-        } else {
-            throw IllegalArgumentException("e2e decrypt: sign not verified")
-        }
-    }
-
-    suspend fun encryptFile(address: ByteArray, data: ArrayBuffer): E2EEncryptedFile {
-        val auth = E2EAuthStore.load(address)!!
-        val (encrypted, iv) = AES.encrypt(auth.secretKey, data).await()
-        val sha1 = SHA1.digest(data).await()
-        val buffer = toArrayBuffer(iv.buffer, sha1)
-        val sign = ECDSA.sign(HashSHA512, auth.privateKey, buffer).await()
-        return E2EEncryptedFile(sign, iv.buffer, encrypted)
-    }
-
-    suspend fun decryptFile(address: ByteArray,
-                            sign: ByteArray,
-                            iv: ByteArray,
-                            data: ArrayBuffer,
-                            own: Boolean): ArrayBuffer {
-        val auth = E2EAuthStore.load(address)!!
-        val ivB = Uint8Array(toArrayBuffer(iv))
-        val signB = toArrayBuffer(sign)
-        val decrypted = AES.decrypt(auth.secretKey, data, ivB).await()
-        val sha1 = SHA1.digest(decrypted).await()
-        val buffer = toArrayBuffer(iv, sha1)
-        val verified = if (own) {
-            val publicKey = ECDSA.toPublicKey(CurveP384, auth.privateKey)
-            ECDSA.verify(HashSHA512, publicKey, signB, buffer).await()
-        } else {
-            ECDSA.verify(HashSHA512, auth.publicKey, signB, buffer).await()
-        }
-        if (verified) {
-            console.log("file verified")
             return decrypted
         } else {
             throw IllegalArgumentException("e2e decrypt: sign not verified")
