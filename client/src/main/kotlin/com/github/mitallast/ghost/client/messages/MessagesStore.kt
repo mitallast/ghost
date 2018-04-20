@@ -71,7 +71,7 @@ object MessagesStore {
         }
     }
 
-    suspend fun historyTop(dialog: ByteArray, limit: Int): ArrayList<Message> {
+    suspend fun historyTop(dialog: ByteArray, limit: Int): List<Message> {
         console.log("load historyTop", HEX.toHex(dialog), limit)
         val tx = db.await().transaction("messages", "readonly")
         val store = tx.objectStore("messages")
