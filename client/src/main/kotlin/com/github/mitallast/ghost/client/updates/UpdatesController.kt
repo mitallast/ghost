@@ -2,11 +2,14 @@ package com.github.mitallast.ghost.client.updates
 
 import com.github.mitallast.ghost.client.e2e.E2EController
 import com.github.mitallast.ghost.client.ecdh.ECDHController
+import com.github.mitallast.ghost.client.groups.GroupsController
 import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EAuthCanceled
 import com.github.mitallast.ghost.e2e.E2EAuthRequest
 import com.github.mitallast.ghost.e2e.E2EAuthResponse
 import com.github.mitallast.ghost.e2e.E2EEncrypted
+import com.github.mitallast.ghost.groups.GroupEncrypted
+import com.github.mitallast.ghost.groups.GroupJoin
 import com.github.mitallast.ghost.updates.*
 
 object UpdatesController {
@@ -65,6 +68,7 @@ object UpdatesController {
             is E2EAuthResponse -> E2EController.handle(from, update)
             is E2EAuthCanceled -> E2EController.handle(from, update)
             is E2EEncrypted -> E2EController.handle(from, update)
+            is GroupEncrypted -> GroupsController.handle(from, update)
             else -> console.error("unexpected message", from, update)
         }
     }

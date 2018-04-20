@@ -1,44 +1,33 @@
-package com.github.mitallast.ghost.client.profile
+package com.github.mitallast.ghost.client.dialog
 
 import com.github.mitallast.ghost.client.common.launch
-import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.text
-import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.view.ScrollView
 import com.github.mitallast.ghost.client.view.SidebarController
 import com.github.mitallast.ghost.client.view.View
-import com.github.mitallast.ghost.message.*
-import com.github.mitallast.ghost.profile.UserProfile
+import com.github.mitallast.ghost.message.FileMessage
+import com.github.mitallast.ghost.message.Message
+import com.github.mitallast.ghost.message.ServiceMessage
+import com.github.mitallast.ghost.message.TextMessage
 import kotlin.js.Date
 
 object SidebarDialogsController {
-    private val dialogsMap = HashMap<String, SidebarDialogView>()
+    private val scrollView = ScrollView(SidebarDialogsView)
 
     fun show() {
         console.log("show dialogs")
-        SidebarController.view(ScrollView(SidebarDialogsView))
+        SidebarController.view(scrollView)
     }
 
-    suspend fun update(profile: UserProfile) {
-        val key = HEX.toHex(profile.id)
-        val old: SidebarDialogView? = dialogsMap[key]
-        if (old == null) {
-            val view = SidebarDialogView(profile)
-            val last = MessagesController.lastMessage(profile.id)
-            if (last != null) {
-                view.update(last)
-            }
-            dialogsMap[key] = view
-            SidebarDialogsView.add(view)
-        } else {
-            old.update(profile)
-        }
+    fun add(controller: SidebarDialogController): SidebarDialogView {
+        val view = SidebarDialogView(controller)
+        SidebarDialogsView.add(view)
+        return view
     }
 
-    fun update(id: ByteArray, message: Message) {
-        val key = HEX.toHex(id)
-        dialogsMap[key]?.update(message)
+    fun remove(view: SidebarDialogView) {
+        SidebarDialogsView.remove(view)
     }
 }
 
@@ -50,20 +39,28 @@ object SidebarDialogsView : View {
     fun add(view: SidebarDialogView) {
         root.append(view.root)
     }
+
+    fun remove(view: SidebarDialogView) {
+        root.remove(view.root)
+    }
 }
 
-class SidebarDialogView(profile: UserProfile) {
-    private val dateText = text("00:00")
-    private val messageText = text("...")
-    private val fullnameText = text(profile.fullname)
-    private val letterText = text(profile.fullname.substring(0, 1))
+interface SidebarDialogController {
+    fun open()
+}
 
-    fun update(profile: UserProfile) {
-        fullnameText.text(profile.fullname)
-        letterText.text(profile.fullname.substring(0, 1))
+class SidebarDialogView(private val controller: SidebarDialogController) {
+    private val dateText = text("")
+    private val messageText = text("")
+    private val fullnameText = text("")
+    private val letterText = text("")
+
+    fun title(title: String) {
+        fullnameText.text(title)
+        letterText.text(title.substring(0, 1))
     }
 
-    fun update(message: Message) {
+    fun message(message: Message) {
         dateText.text(timeFormat(message.date))
         val content = message.content
         when (content) {
@@ -100,7 +97,7 @@ class SidebarDialogView(profile: UserProfile) {
         }
         onclick {
             launch {
-                MessagesController.open(profile)
+                controller.open()
             }
         }
     }

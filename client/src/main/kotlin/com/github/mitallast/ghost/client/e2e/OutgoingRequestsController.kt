@@ -12,7 +12,7 @@ object OutgoingRequestsController {
         console.log("render")
         val view = OutgoingRequestsView(requests)
         console.log("view")
-        ContentHeaderView.setTitle("Outgoing requests")
+        ContentHeaderController.title("Outgoing requests")
         ContentMainController.view(view)
         ContentFooterController.hide()
     }

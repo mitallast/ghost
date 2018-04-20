@@ -1,5 +1,6 @@
 package com.github.mitallast.ghost.client.files
 
+import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.view.View
 import org.w3c.dom.url.URL
@@ -9,7 +10,7 @@ import org.w3c.files.get
 import kotlin.browser.window
 
 interface FilesDropHandler {
-    fun send(file: File)
+    suspend fun send(file: File)
 }
 
 object FilesDropController {
@@ -67,7 +68,7 @@ object FilesDropController {
         }
     }
 
-    fun send(file: File) {
+    suspend fun send(file: File) {
         if (handler != null) {
             handler!!.send(file)
         }
@@ -155,7 +156,7 @@ class FilesDropImagePreview(private val file: File) : View {
                 text("Upload")
                 onclick { e ->
                     e.preventDefault()
-                    FilesDropController.send(file)
+                    launch { FilesDropController.send(file) }
                 }
             }
             button {
@@ -207,7 +208,7 @@ class FilesDropPreview(private val file: File) : View {
                 text("Upload")
                 onclick { e ->
                     e.preventDefault()
-                    FilesDropController.send(file)
+                    launch { FilesDropController.send(file) }
                 }
             }
             button {

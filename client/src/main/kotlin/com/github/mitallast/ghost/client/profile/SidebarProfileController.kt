@@ -29,8 +29,8 @@ object SidebarProfileController {
         SidebarProfileView.view(formView)
     }
 
-    suspend fun updateProfile(profile: UserProfile) {
-        ProfileStore.updateProfile(profile)
+    suspend fun editProfile(profile: UserProfile) {
+        ProfileController.editProfile(profile)
         console.log("profile updated")
         show()
     }
@@ -101,7 +101,7 @@ class SidebarProfileFormView(profile: UserProfile) : View {
                             nickname = profile.nickname,
                             avatar = profile.avatar
                     )
-                    launch { SidebarProfileController.updateProfile(updated) }
+                    launch { SidebarProfileController.editProfile(updated) }
                 }
             }
         }

@@ -4,20 +4,20 @@ import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
+import com.github.mitallast.ghost.client.groups.GroupsController
 import com.github.mitallast.ghost.client.html.div
-import com.github.mitallast.ghost.client.messages.MessagesController
 import com.github.mitallast.ghost.client.profile.ProfileController
+import com.github.mitallast.ghost.client.profile.ProfilesController
 import com.github.mitallast.ghost.client.updates.UpdatesController
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.client.view.*
 import com.github.mitallast.ghost.common.codec.Codec
 import com.github.mitallast.ghost.common.codec.CodecMessage
 import com.github.mitallast.ghost.e2e.E2EAuthCanceled
 import com.github.mitallast.ghost.e2e.E2EAuthRequest
 import com.github.mitallast.ghost.e2e.E2EAuthResponse
 import com.github.mitallast.ghost.e2e.E2EEncrypted
+import com.github.mitallast.ghost.groups.GroupJoin
+import com.github.mitallast.ghost.groups.GroupLeaved
 import com.github.mitallast.ghost.message.Message
 import com.github.mitallast.ghost.profile.UserProfile
 
@@ -49,7 +49,7 @@ object E2EController {
 
     private fun viewCanceled(address: ByteArray) {
         val view = E2EAuthCanceledView(address)
-        ContentHeaderView.setTitle("Auth canceled: " + HEX.toHex(address))
+        ContentHeaderController.title("Auth canceled: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
@@ -69,10 +69,13 @@ object E2EController {
                 val decoded = Codec.anyCodec<CodecMessage>().read(toByteArray(decrypted))
                 console.log("e2e received", decoded)
                 when (decoded) {
-                    is UserProfile -> ProfileController.updateProfile(decoded)
-                    is Message -> MessagesController.handle(from, decoded)
+                    is UserProfile -> ProfilesController.update(decoded)
+                    is Message -> ProfilesController.dialog(from)?.incoming(decoded)
+                    is GroupJoin -> GroupsController.handle(from, decoded)
+                    else -> console.warn("unexpected e2e message", decoded)
                 }
             }
+            is GroupJoin -> GroupsController.handle(from, update)
         }
     }
 }

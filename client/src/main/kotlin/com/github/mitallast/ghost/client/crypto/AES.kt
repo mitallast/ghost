@@ -110,4 +110,27 @@ object AES {
             keyUsages = arrayOf("decrypt", "unwrapKey")
         )
     }
+
+    fun wrapAESKey(wrappingKey: AESKey, key: AESKey): Promise<Pair<ArrayBuffer, Uint8Array>> {
+        val iv = Uint8Array(12)
+        crypto.getRandomValues(iv)
+        return crypto.subtle.wrapKey(
+            format = "pkcs8",
+            key = key,
+            wrappingKey = wrappingKey,
+            algorithm = json(Pair("name", name), Pair("iv", iv))
+        ).then { Pair(it, iv) }
+    }
+
+    fun unwrapAESKey(wrappingKey: AESKey, iv: Uint8Array, key: ArrayBuffer): Promise<AESKey> {
+        return crypto.subtle.unwrapKey(
+            format = "pkcs8",
+            wrappedKey = key,
+            unwrappingKey = wrappingKey,
+            unwrapAlgorithm = json(Pair("name", name), Pair("iv", iv)),
+            unwrappedKeyAlgorithm = json(Pair("name", name)),
+            extractable = true,
+            keyUsages = arrayOf("encrypt", "decrypt")
+        )
+    }
 }

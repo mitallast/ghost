@@ -6,6 +6,7 @@ import com.github.mitallast.ghost.e2e.*
 import com.github.mitallast.ghost.files.*
 import com.github.mitallast.ghost.updates.*
 import com.github.mitallast.ghost.message.*
+import com.github.mitallast.ghost.groups.*
 import com.github.mitallast.ghost.profile.UserProfile
 
 object Registry {
@@ -36,5 +37,10 @@ object Registry {
         Codec.register(TextMessage.messageId, TextMessage.codec)
         Codec.register(ServiceMessage.messageId, ServiceMessage.codec)
         Codec.register(FileMessage.messageId, FileMessage.codec)
+
+        Codec.register(GroupJoin.messageId, GroupJoin.codec)
+        Codec.register(GroupEncrypted.messageId, GroupEncrypted.codec)
+        Codec.register(GroupJoined.messageId, GroupJoined.codec)
+        Codec.register(GroupLeaved.messageId, GroupLeaved.codec)
     }
 }

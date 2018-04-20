@@ -8,15 +8,12 @@ import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
 import com.github.mitallast.ghost.client.updates.UpdatesController
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.client.view.*
 
 object AddRequestController {
     fun start() {
         console.log("start add dialog")
-        ContentHeaderView.setTitle("Add new dialog")
+        ContentHeaderController.title("Add new dialog")
         ContentMainController.view(AddDialogView())
         ContentFooterController.hide()
     }

@@ -2,6 +2,8 @@ package com.github.mitallast.ghost.client.profile
 
 import com.github.mitallast.ghost.client.common.launch
 import com.github.mitallast.ghost.client.crypto.HEX
+import com.github.mitallast.ghost.client.dialog.SidebarDialogsController
+import com.github.mitallast.ghost.client.groups.GroupsController
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.view.*
@@ -9,52 +11,83 @@ import com.github.mitallast.ghost.profile.UserProfile
 
 object ProfileController {
     private var id: ByteArray? = null
+    private var profile: UserProfile? = null
 
     suspend fun start(auth: ByteArray) {
         id = auth
-        val profile = ProfileStore.loadProfile(auth)
+        profile = ProfileStore.loadProfile(auth)
         if (profile == null) {
             console.log("no profile found")
-            ContentHeaderView.setTitle("New profile setup")
+            ContentHeaderController.title("New profile setup")
             ContentFooterController.hide()
             ContentMainController.view(NewProfileFormView(auth))
             SidebarController.hide()
         } else {
-            ProfileStore.loadAll().forEach {
-                updateProfile(it)
-            }
+            ProfilesController.start()
+            GroupsController.start()
             SidebarDialogsController.show()
         }
     }
 
     fun showAddress() {
-        ContentHeaderView.setTitle("Your address")
+        ContentHeaderController.title("Your address")
         ContentMainController.view(ProfileAddressView(id!!))
         ContentFooterController.hide()
     }
 
-    suspend fun profile(): UserProfile {
-        return ProfileStore.loadProfile(id!!)!!
+    fun profile(): UserProfile {
+        return profile!!
     }
 
-    suspend fun profile(id: ByteArray): UserProfile {
-        return ProfileStore.loadProfile(id)!!
+    suspend fun editProfile(edited: UserProfile) {
+        profile = edited
+        ProfileStore.updateProfile(edited)
+        SidebarSettingsController.show()
+        ProfileController.showAddress()
+    }
+}
+
+object ProfilesController {
+    private val dialogs = HashMap<String, ProfileDialogController>()
+
+    suspend fun contacts(): List<UserProfile> {
+        val self = ProfileController.profile()
+        return ProfileStore.loadAll().filterNot { it.id.contentEquals(self.id) }
     }
 
-    suspend fun updateProfile(profile: UserProfile) {
-        ProfileStore.updateProfile(profile)
-        if (profile.id.contentEquals(id!!)) {
-            console.log("your profile updated")
-        } else {
-            console.log("remote profile updated")
-            SidebarDialogsController.update(profile)
+    suspend fun start() {
+        for (user in contacts()) {
+            start(user)
         }
     }
 
-    suspend fun editProfile(profile: UserProfile) {
-        updateProfile(profile)
-        SidebarSettingsController.show()
-        ProfileController.showAddress()
+    private fun start(profile: UserProfile) {
+        val key = HEX.toHex(profile.id)
+        val exist = dialogs[key]
+        if (exist == null) {
+            val self = ProfileController.profile()
+            val controller = ProfileDialogController(self, profile)
+            dialogs[key] = controller
+        }
+    }
+
+    suspend fun update(profile: UserProfile) {
+        console.log("remote profile updated")
+        ProfileStore.updateProfile(profile)
+        val key = HEX.toHex(profile.id)
+        val exist = dialogs[key]
+        if (exist == null) {
+            val self = ProfileController.profile()
+            val controller = ProfileDialogController(self, profile)
+            dialogs[key] = controller
+        } else {
+            exist.update(profile)
+        }
+    }
+
+    fun dialog(id: ByteArray): ProfileDialogController? {
+        val key = HEX.toHex(id)
+        return dialogs[key]
     }
 }
 

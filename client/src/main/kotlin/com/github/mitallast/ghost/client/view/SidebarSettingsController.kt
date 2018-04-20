@@ -5,6 +5,7 @@ import com.github.mitallast.ghost.client.e2e.SidebarAddDialogMenuView
 import com.github.mitallast.ghost.client.e2e.SidebarIncomingRequestsMenuView
 import com.github.mitallast.ghost.client.e2e.SidebarOutgoingRequestsMenuView
 import com.github.mitallast.ghost.client.e2e.SidebarPendingResponsesMenuView
+import com.github.mitallast.ghost.client.groups.SidebarNewGroupMenuView
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.profile.*
 
@@ -27,6 +28,7 @@ object SidebarSettingsMenuView : View {
             append(SidebarOutgoingRequestsMenuView.root)
             append(SidebarIncomingRequestsMenuView.root)
             append(SidebarPendingResponsesMenuView.root)
+            append(SidebarNewGroupMenuView.root)
             append(SidebarDeleteAllMenuItem.root)
         }
     }

@@ -5,10 +5,7 @@ import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.client.view.*
 import com.github.mitallast.ghost.e2e.E2EAuthRequest
 
 object IncomingRequestController {
@@ -25,7 +22,7 @@ object IncomingRequestController {
 
     fun start(address: ByteArray) {
         val view = IncomingRequestView(address)
-        ContentHeaderView.setTitle("Incoming request: " + HEX.toHex(address))
+        ContentHeaderController.title("Incoming request: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
@@ -34,7 +31,7 @@ object IncomingRequestController {
         E2EController.answer(address, password)
 
         val view = IncomingRequestAnsweredView(address)
-        ContentHeaderView.setTitle("Incoming request: " + HEX.toHex(address))
+        ContentHeaderController.title("Incoming request: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
@@ -42,7 +39,7 @@ object IncomingRequestController {
     suspend fun listView() {
         val requests = E2EIncomingRequestStore.list()
         val view = IncomingRequestsView(requests)
-        ContentHeaderView.setTitle("Incoming requests")
+        ContentHeaderController.title("Incoming requests")
         ContentMainController.view(view)
         ContentFooterController.hide()
     }

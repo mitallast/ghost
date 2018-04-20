@@ -6,19 +6,17 @@ import com.github.mitallast.ghost.client.e2e.E2EIncomingRequestStore
 import com.github.mitallast.ghost.client.e2e.E2EOutgoingRequestStore
 import com.github.mitallast.ghost.client.e2e.E2EResponseStore
 import com.github.mitallast.ghost.client.ecdh.ECDHAuthStore
+import com.github.mitallast.ghost.client.groups.GroupStore
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.messages.MessagesStore
 import com.github.mitallast.ghost.client.profile.ProfileStore
 import com.github.mitallast.ghost.client.updates.UpdatesStore
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
+import com.github.mitallast.ghost.client.view.*
 import kotlin.browser.window
 
 object DeleteAllController {
     fun view() {
-        ContentHeaderView.setTitle("Delete profile")
+        ContentHeaderController.title("Delete profile")
         ContentMainController.view(DeleteAllView)
         ContentFooterController.hide()
     }
@@ -33,6 +31,7 @@ object DeleteAllController {
             MessagesStore.cleanup()
             ProfileStore.cleanup()
             UpdatesStore.cleanup()
+            GroupStore.cleanup()
             window.location.reload()
         }
     }

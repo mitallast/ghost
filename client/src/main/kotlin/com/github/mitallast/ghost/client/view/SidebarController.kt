@@ -1,8 +1,8 @@
 package com.github.mitallast.ghost.client.view
 
 import com.github.mitallast.ghost.client.common.launch
+import com.github.mitallast.ghost.client.dialog.SidebarDialogsController
 import com.github.mitallast.ghost.client.html.a
-import com.github.mitallast.ghost.client.profile.SidebarDialogsController
 import com.github.mitallast.ghost.client.html.div
 
 object SidebarController {

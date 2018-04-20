@@ -1,24 +1,73 @@
 package com.github.mitallast.ghost.client.view
 
+import com.github.mitallast.ghost.client.common.launch
+import com.github.mitallast.ghost.client.groups.Group
+import com.github.mitallast.ghost.client.groups.GroupDialogController
 import com.github.mitallast.ghost.client.html.div
-import com.github.mitallast.ghost.client.html.text
 
-object ContentHeaderView : View {
-    private val titleText = text("Ghost messenger")
+class DefaultHeaderView(title: String) : View {
     override val root = div {
-        clazz("content-header")
         h3 {
-            append(titleText)
+            text(title)
         }
     }
+}
 
-    fun setTitle(title: String) {
-        titleText.text(title)
+class ActionHeaderView(
+    title: String,
+    action: () -> Unit
+) : View {
+    override val root = div {
+        h3 {
+            clazz("header-action")
+            text(title)
+            onclick { action() }
+        }
+    }
+}
+
+object ContentHeaderController {
+    private var last: View? = null
+
+    fun title(title: String) {
+        view(DefaultHeaderView(title))
+    }
+
+    fun action(title: String, action: () -> Unit) {
+        view(ActionHeaderView(title, action))
+    }
+
+    fun view(view: View) {
+        hide()
+        last = view
+        ContentHeaderView.view(view)
+    }
+
+    fun hide() {
+        if (last != null) {
+            ContentHeaderView.remove(last!!)
+            last = null
+        }
+    }
+}
+
+object ContentHeaderView : View {
+    override val root = div {
+        clazz("content-header")
+    }
+
+    fun remove(view: View) {
+        root.remove(view.root)
+    }
+
+    fun view(view: View) {
+        root.append(view.root)
     }
 }
 
 object ContentMainController {
     private var last: View? = null
+
     fun view(view: View) {
         hide()
         last = view
@@ -30,6 +79,10 @@ object ContentMainController {
             ContentMainView.remove(last!!)
             last = null
         }
+    }
+
+    fun contains(view: View): Boolean {
+        return last === view
     }
 }
 

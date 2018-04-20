@@ -522,8 +522,14 @@ class RequiredFieldCodec<T>(
 ) : FieldCodec<T> {
 
     override fun read(last: Int, stream: InputStream): Pair<Int, T> {
-        if (last < field) {
-            return read(stream)
+        return if (last < field) {
+            read(stream)
+        } else if (last == field) {
+            val tag = stream.read()
+            if (tag != codec.tag) {
+                throw IllegalStateException("Unexpected tag $tag, expected ${codec.tag}")
+            }
+            Pair(last, codec.read(stream))
         } else {
             throw IllegalStateException("Field $field:${codec.tag} not found")
         }

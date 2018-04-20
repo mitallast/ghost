@@ -1,18 +1,14 @@
 package com.github.mitallast.ghost.client.e2e
 
 import com.github.mitallast.ghost.client.common.launch
-import com.github.mitallast.ghost.client.common.toArrayBuffer
 import com.github.mitallast.ghost.client.common.toByteArray
 import com.github.mitallast.ghost.client.crypto.HEX
 import com.github.mitallast.ghost.client.html.div
 import com.github.mitallast.ghost.client.html.input
 import com.github.mitallast.ghost.client.html.text
 import com.github.mitallast.ghost.client.profile.ProfileController
-import com.github.mitallast.ghost.client.view.ContentFooterController
-import com.github.mitallast.ghost.client.view.ContentHeaderView
-import com.github.mitallast.ghost.client.view.ContentMainController
-import com.github.mitallast.ghost.client.view.View
-import com.github.mitallast.ghost.common.codec.Codec
+import com.github.mitallast.ghost.client.profile.ProfilesController
+import com.github.mitallast.ghost.client.view.*
 import com.github.mitallast.ghost.e2e.E2EAuthResponse
 import com.github.mitallast.ghost.profile.UserProfile
 
@@ -25,7 +21,7 @@ object ResponseController {
 
     fun start(address: ByteArray) {
         val view = ResponseView(address)
-        ContentHeaderView.setTitle("Response: " + HEX.toHex(address))
+        ContentHeaderController.title("Response: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
@@ -33,12 +29,12 @@ object ResponseController {
     suspend fun complete(address: ByteArray, password: String) {
         val decrypted = E2EDHFlow.completeResponse(address, password)
         val profile = UserProfile.codec.read(toByteArray(decrypted))
-        ProfileController.updateProfile(profile)
+        ProfilesController.update(profile)
         val self = ProfileController.profile()
         E2EController.send(address, self)
 
         val view = ResponseCompleteView(address)
-        ContentHeaderView.setTitle("Response: " + HEX.toHex(address))
+        ContentHeaderController.title("Response: " + HEX.toHex(address))
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
@@ -46,7 +42,7 @@ object ResponseController {
     suspend fun listView() {
         val responses = E2EResponseStore.list()
         val view = PendingResponsesView(responses)
-        ContentHeaderView.setTitle("Pending responses")
+        ContentHeaderController.title("Pending responses")
         ContentMainController.view(view)
         ContentFooterController.hide()
     }
